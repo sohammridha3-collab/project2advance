@@ -120,6 +120,13 @@ def migrate_healthbridge_schema():
                         logger.info("[Database] Migrated prescriptions: added extraction_status column.")
                     except Exception as e:
                         logger.warning(f"Prescription extraction_status migration note: {e}")
+                if "title" not in rx_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE prescriptions ADD COLUMN title VARCHAR(200)"))
+                        conn.commit()
+                        logger.info("[Database] Migrated prescriptions: added title column.")
+                    except Exception as e:
+                        logger.warning(f"Prescription title migration note: {e}")
     except Exception as exc:
         logger.warning(f"HealthBridge schema migration check note: {exc}")
 

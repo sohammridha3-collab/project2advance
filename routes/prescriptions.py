@@ -78,6 +78,7 @@ async def _process_prescription_creation(
     
     saved_rel_path: Optional[str] = None
     orig_filename: Optional[str] = None
+    title: Optional[str] = None
     doctor_name: Optional[str] = None
     hospital_name: Optional[str] = None
     main_health_problem: Optional[str] = None
@@ -127,6 +128,7 @@ async def _process_prescription_creation(
 
             saved_rel_path = unique_filename
 
+        title = form.get("title")
         doctor_name = form.get("doctor_name")
         hospital_name = form.get("hospital_name")
         main_health_problem = form.get("main_health_problem")
@@ -151,6 +153,7 @@ async def _process_prescription_creation(
         except Exception:
             body = {}
         
+        title = body.get("title")
         doctor_name = body.get("doctor_name")
         hospital_name = body.get("hospital_name")
         main_health_problem = body.get("main_health_problem")
@@ -178,6 +181,7 @@ async def _process_prescription_creation(
 
     new_prescription = Prescription(
         user_id=user.id,
+        title=str(title).strip() if title else None,
         doctor_name=str(doctor_name).strip() if doctor_name else None,
         hospital_name=str(hospital_name).strip() if hospital_name else None,
         main_health_problem=str(main_health_problem).strip() if main_health_problem else None,
@@ -316,6 +320,8 @@ def update_prescription(
             detail="Prescription not found or access denied."
         )
 
+    if update_in.title is not None:
+        prescription.title = update_in.title.strip() if update_in.title else None
     if update_in.main_health_problem is not None:
         prescription.main_health_problem = update_in.main_health_problem.strip() if update_in.main_health_problem else None
     if update_in.doctor_name is not None:
@@ -511,13 +517,14 @@ def delete_prescription_medicine(
 def download_prescription_file(
     prescription_id: int,
     token: Optional[str] = None,
+    download: bool = False,
     db: Session = Depends(get_db),
     auth_user: Optional[User] = Depends(get_optional_current_user)
 ):
     """
     Secure file retrieval:
     Ensures prescription belongs to current authenticated user (via Authorization header or query token),
-    then securely serves the prescription document.
+    then securely serves the prescription document. Supports inline preview and direct download attachment.
     """
     user = auth_user
     if not user and token:
@@ -566,10 +573,12 @@ def download_prescription_file(
         media_type = "application/octet-stream"
 
     filename = prescription.original_filename or file_path.name
+    disposition_type = "attachment" if download else "inline"
     return FileResponse(
         path=str(file_path),
         media_type=media_type,
-        filename=filename
+        filename=filename,
+        content_disposition_type=disposition_type
     )
 
 

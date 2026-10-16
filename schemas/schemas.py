@@ -253,6 +253,7 @@ class PrescriptionMedicineOut(BaseModel):
         from_attributes = True
 
 class PrescriptionCreate(BaseModel):
+    title: Optional[str] = None
     main_health_problem: Optional[str] = None
     doctor_name: Optional[str] = None
     hospital_name: Optional[str] = None
@@ -265,6 +266,7 @@ class PrescriptionCreate(BaseModel):
     medicines: List[PrescriptionMedicineCreate] = []
 
 class PrescriptionUpdate(BaseModel):
+    title: Optional[str] = None
     main_health_problem: Optional[str] = None
     doctor_name: Optional[str] = None
     hospital_name: Optional[str] = None
@@ -276,6 +278,7 @@ class PrescriptionUpdate(BaseModel):
 class PrescriptionOut(BaseModel):
     id: int
     user_id: int
+    title: Optional[str] = None
     prescription_date: Optional[datetime] = None
     main_health_problem: Optional[str] = None
     diagnosis: Optional[str] = None

@@ -13,17 +13,26 @@
   const ALLOWED_EXTS = [".pdf", ".jpg", ".jpeg", ".png"];
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
-  // DOM Elements - Upload
+  // DOM Elements - Upload & Dual Options
   const uploadSection = document.getElementById("vault-upload-section");
   const uploadForm = document.getElementById("vault-upload-form");
+  const optionsContainer = document.getElementById("vault-options-container");
+  const cameraCard = document.getElementById("camera-option-card");
+  const deviceCard = document.getElementById("device-option-card");
+  const startCameraBtn = document.getElementById("start-camera-btn");
+  const cameraFileInput = document.getElementById("camera-file-input");
   const dropzone = document.getElementById("vault-dropzone");
   const fileInput = document.getElementById("prescription-file-input");
   const triggerFileBtn = document.getElementById("trigger-file-btn");
+
+  // DOM Elements - Preview
   const previewCard = document.getElementById("dropzone-file-preview");
   const previewThumbBox = document.getElementById("preview-thumb-box");
   const previewFilename = document.getElementById("preview-filename");
   const previewFilesize = document.getElementById("preview-filesize");
   const previewFiletype = document.getElementById("preview-filetype");
+  const previewSourceBadge = document.getElementById("preview-source-badge");
+  const retakePhotoBtn = document.getElementById("retake-photo-btn");
   const replaceFileBtn = document.getElementById("replace-file-btn");
   const removeFileBtn = document.getElementById("remove-file-btn");
   const cancelUploadBtn = document.getElementById("cancel-upload-btn");
@@ -35,6 +44,22 @@
   const uploadProgressText = document.getElementById("upload-progress-text");
   const uploadProgressPercent = document.getElementById("upload-progress-percent");
   const uploadProgressBar = document.getElementById("upload-progress-bar");
+
+  // DOM Elements - Live Camera Viewfinder Modal
+  const cameraModal = document.getElementById("camera-modal");
+  const cameraVideo = document.getElementById("camera-video");
+  const cameraCanvas = document.getElementById("camera-canvas");
+  const closeCameraModalBtn = document.getElementById("close-camera-modal-btn");
+  const switchCameraBtn = document.getElementById("switch-camera-btn");
+  const shutterBtn = document.getElementById("shutter-btn");
+  const cameraCancelBtn = document.getElementById("camera-cancel-btn");
+  const cameraLoadingOverlay = document.getElementById("camera-loading-overlay");
+  const cameraStatusText = document.getElementById("camera-status-text");
+  const cameraErrorOverlay = document.getElementById("camera-error-overlay");
+  const cameraErrorDesc = document.getElementById("camera-error-desc");
+  const fallbackCaptureBtn = document.getElementById("fallback-capture-btn");
+  const cameraErrorDismissBtn = document.getElementById("camera-error-dismiss-btn");
+  const cameraDeviceFallbackBtn = document.getElementById("camera-device-fallback-btn");
 
   // DOM Elements - Collection
   const listContainer = document.getElementById("vault-list-container");
@@ -61,6 +86,11 @@
   let currentDetailPrescription = null;
   let isEditingDetails = false;
 
+  // Live Camera State
+  let activeCameraStream = null;
+  let currentFacingMode = "environment"; // Prefer rear-facing camera on mobile
+  let capturedSource = "device"; // 'camera' or 'device'
+
   // Format Helper
   function formatDate(isoStr) {
     if (!isoStr) return "Not specified";
@@ -84,67 +114,254 @@
   }
 
   // ============================================================
-  // FILE SELECTION, DRAG & DROP, AND PREVIEW
+  // LIVE CAMERA CONTROLLER (Option A)
   // ============================================================
-  function handleFileSelection(file) {
-    if (!file) return;
+  async function startCameraCapture() {
+    // Check browser compatibility
+    const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 
-    const ext = "." + file.name.split(".").pop().toLowerCase();
-    if (!ALLOWED_EXTS.includes(ext)) {
-      showToast(`Invalid file format '${ext}'. Allowed: ${ALLOWED_EXTS.join(", ")}`, "error");
-      fileInput.value = "";
+    // If browser doesn't support getUserMedia or context is non-secure without localhost,
+    // seamlessly trigger device camera app via native capture="environment" file input
+    if (!hasMediaDevices) {
+      if (cameraFileInput) {
+        cameraFileInput.click();
+      } else if (fileInput) {
+        fileInput.click();
+      }
       return;
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      showToast("File size exceeds 10 MB limit.", "error");
-      fileInput.value = "";
-      return;
+    if (cameraModal) {
+      cameraModal.style.display = "flex";
+      cameraModal.classList.add("active");
     }
+    if (cameraLoadingOverlay) {
+      cameraLoadingOverlay.style.display = "flex";
+      if (cameraStatusText) cameraStatusText.textContent = "Starting camera...";
+    }
+    if (cameraErrorOverlay) cameraErrorOverlay.style.display = "none";
 
-    selectedFile = file;
+    stopCameraStream();
 
-    // Show preview card
-    previewFilename.textContent = file.name;
-    previewFilesize.textContent = formatFileSize(file.size);
-    const isPdf = ext === ".pdf";
-    previewFiletype.textContent = isPdf ? "PDF Document" : "Image";
-
-    previewThumbBox.innerHTML = "";
-    if (isPdf) {
-      previewThumbBox.innerHTML = `<span class="pdf-icon-badge" title="PDF Document">📄</span>`;
-    } else {
-      const img = document.createElement("img");
-      img.alt = file.name;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        img.src = e.target.result;
+    try {
+      // 1. Prefer rear-facing camera on mobile devices with high definition
+      const constraints = {
+        video: {
+          facingMode: { ideal: currentFacingMode },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        audio: false
       };
-      reader.readAsDataURL(file);
-      previewThumbBox.appendChild(img);
-    }
 
-    dropzone.style.display = "none";
-    previewCard.style.display = "flex";
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      attachStreamToVideo(stream);
+      await checkMultipleCameras();
+    } catch (err) {
+      console.warn("Primary camera constraints failed, attempting fallback:", err);
+      try {
+        // 2. Fallback to basic video request
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        attachStreamToVideo(stream);
+        await checkMultipleCameras();
+      } catch (fallbackErr) {
+        console.error("Camera access failed:", fallbackErr);
+        if (cameraLoadingOverlay) cameraLoadingOverlay.style.display = "none";
+        if (cameraErrorOverlay) {
+          cameraErrorOverlay.style.display = "flex";
+          if (cameraErrorDesc) {
+            const isDenied = fallbackErr.name === "NotAllowedError" || fallbackErr.name === "PermissionDeniedError";
+            cameraErrorDesc.textContent = isDenied
+              ? "Camera permission was denied in your browser. You can allow camera access in browser settings, or tap below to photograph using your device camera app."
+              : `Unable to open live camera (${fallbackErr.message || "Device unavailable"}). You can take a photo using your device's native camera.`;
+          }
+        }
+      }
+    }
   }
 
+  function attachStreamToVideo(stream) {
+    activeCameraStream = stream;
+    if (cameraVideo) {
+      cameraVideo.srcObject = stream;
+      cameraVideo.play().catch(e => console.warn("Video play error:", e));
+    }
+    if (cameraLoadingOverlay) cameraLoadingOverlay.style.display = "none";
+  }
+
+  function stopCameraStream() {
+    if (activeCameraStream) {
+      activeCameraStream.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch (e) {
+          console.warn("Track stop error:", e);
+        }
+      });
+      activeCameraStream = null;
+    }
+    if (cameraVideo) {
+      cameraVideo.srcObject = null;
+    }
+  }
+
+  function closeCameraModal() {
+    stopCameraStream();
+    if (cameraModal) {
+      cameraModal.style.display = "none";
+      cameraModal.classList.remove("active");
+    }
+    if (cameraLoadingOverlay) cameraLoadingOverlay.style.display = "none";
+    if (cameraErrorOverlay) cameraErrorOverlay.style.display = "none";
+  }
+
+  async function switchCamera() {
+    currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+    await startCameraCapture();
+  }
+
+  async function checkMultipleCameras() {
+    if (!switchCameraBtn) return;
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === "videoinput");
+        switchCameraBtn.style.display = videoDevices.length > 1 ? "inline-flex" : "none";
+      } else {
+        switchCameraBtn.style.display = "none";
+      }
+    } catch {
+      switchCameraBtn.style.display = "none";
+    }
+  }
+
+  function capturePhotoFromVideo() {
+    if (!cameraVideo || !activeCameraStream || cameraVideo.videoWidth === 0) {
+      showToast("Camera feed is not ready yet. Please wait a moment.", "warning");
+      return;
+    }
+
+    const width = cameraVideo.videoWidth || 1280;
+    const height = cameraVideo.videoHeight || 960;
+    cameraCanvas.width = width;
+    cameraCanvas.height = height;
+
+    const ctx = cameraCanvas.getContext("2d");
+    ctx.drawImage(cameraVideo, 0, 0, width, height);
+
+    cameraCanvas.toBlob((blob) => {
+      if (!blob) {
+        showToast("Failed to snapshot photo from camera.", "error");
+        return;
+      }
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const photoFile = new File([blob], `prescription_photo_${timestamp}.jpg`, {
+        type: "image/jpeg",
+        lastModified: Date.now()
+      });
+
+      closeCameraModal();
+      handleFileSelection(photoFile, { source: "camera" });
+      showToast("Prescription photo captured! Review preview below.", "success");
+    }, "image/jpeg", 0.92);
+  }
+
+  // ============================================================
+  // FILE SELECTION, CAMERA CAPTURE HANDLING, AND PREVIEW
+  // ============================================================
   const extractOcrBtn = document.getElementById("extract-ocr-btn");
   const extractionBanner = document.getElementById("vault-extraction-banner");
   const extractionStatusTitle = document.getElementById("extraction-status-title");
   const extractionStatusDesc = document.getElementById("extraction-status-desc");
 
+  function handleFileSelection(file, options = {}) {
+    if (!file) return;
+
+    const ext = "." + (file.name || "").split(".").pop().toLowerCase();
+    if (!ALLOWED_EXTS.includes(ext)) {
+      showToast(`Invalid file format '${ext}'. Allowed: ${ALLOWED_EXTS.join(", ")}`, "error");
+      if (fileInput) fileInput.value = "";
+      if (cameraFileInput) cameraFileInput.value = "";
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      showToast("File size exceeds 10 MB limit.", "error");
+      if (fileInput) fileInput.value = "";
+      if (cameraFileInput) cameraFileInput.value = "";
+      return;
+    }
+
+    selectedFile = file;
+
+    // Show preview card with file info
+    if (previewFilename) previewFilename.textContent = file.name;
+    if (previewFilesize) previewFilesize.textContent = formatFileSize(file.size);
+
+    const isPdf = ext === ".pdf";
+    if (previewFiletype) previewFiletype.textContent = isPdf ? "PDF Document" : "Image (JPEG/PNG)";
+
+    // Update Source Badge & Retake Button
+    const isCamera = options.source === "camera";
+    capturedSource = isCamera ? "camera" : "device";
+    if (previewSourceBadge) {
+      previewSourceBadge.textContent = isCamera ? "📸 Camera Capture" : "📁 Device Upload";
+      previewSourceBadge.style.display = "inline-flex";
+    }
+    if (retakePhotoBtn) {
+      retakePhotoBtn.style.display = isCamera ? "inline-flex" : "none";
+    }
+
+    // Generate Thumbnail
+    if (previewThumbBox) {
+      previewThumbBox.innerHTML = "";
+      if (isPdf) {
+        previewThumbBox.innerHTML = `<span class="pdf-icon-badge" title="PDF Document" style="font-size:2rem">📄</span>`;
+      } else {
+        const img = document.createElement("img");
+        img.alt = file.name;
+        img.className = "vault-preview-thumbnail";
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        previewThumbBox.appendChild(img);
+      }
+    }
+
+    // Auto-fill Title if currently empty
+    const titleInput = document.getElementById("vault-title");
+    if (titleInput && !titleInput.value.trim()) {
+      if (isCamera) {
+        const todayStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        titleInput.value = `Camera Prescription - ${todayStr}`;
+      } else {
+        const cleanBase = file.name.replace(/\.[^/.]+$/, "").replace(/[_\-]+/g, " ");
+        titleInput.value = cleanBase.charAt(0).toUpperCase() + cleanBase.slice(1);
+      }
+    }
+
+    if (dropzone) dropzone.style.display = "none";
+    if (previewCard) previewCard.style.display = "flex";
+  }
+
   function resetSelectedFile() {
     selectedFile = null;
-    fileInput.value = "";
-    previewCard.style.display = "none";
-    dropzone.style.display = "flex";
-    previewThumbBox.innerHTML = "";
+    if (fileInput) fileInput.value = "";
+    if (cameraFileInput) cameraFileInput.value = "";
+    if (previewCard) previewCard.style.display = "none";
+    if (dropzone) dropzone.style.display = "flex";
+    if (previewThumbBox) previewThumbBox.innerHTML = "";
+    if (previewSourceBadge) previewSourceBadge.style.display = "none";
+    if (retakePhotoBtn) retakePhotoBtn.style.display = "none";
     if (extractionBanner) extractionBanner.style.display = "none";
   }
 
   async function triggerOcrExtraction() {
     if (!selectedFile) {
-      showToast("Please choose a prescription file first.", "warning");
+      showToast("Please choose or photograph a prescription first.", "warning");
       return;
     }
 
@@ -154,18 +371,23 @@
     }
 
     try {
-      showToast("Analyzing prescription document...", "info");
+      showToast("Analyzing prescription document with AI...", "info");
       const fd = new FormData();
       fd.append("file", selectedFile);
       const res = await prescriptions.extract(fd);
 
       if (res && res.extracted_data) {
         const d = res.extracted_data;
+        const titleInput = document.getElementById("vault-title");
         const dateInput = document.getElementById("vault-date");
         const docInput = document.getElementById("vault-doctor");
         const hospInput = document.getElementById("vault-hospital");
         const diagInput = document.getElementById("vault-diagnosis");
+        const probInput = document.getElementById("vault-problem");
 
+        if (d.title && titleInput && !titleInput.value) {
+          titleInput.value = d.title;
+        }
         if (d.prescription_date && dateInput && !dateInput.value) {
           dateInput.value = d.prescription_date;
         }
@@ -177,6 +399,9 @@
         }
         if (d.diagnosis && diagInput && !diagInput.value) {
           diagInput.value = d.diagnosis;
+        }
+        if (d.main_health_problem && probInput && !probInput.value) {
+          probInput.value = d.main_health_problem;
         }
 
         // Populate medicine candidates if none entered yet
@@ -195,11 +420,11 @@
             extractionStatusDesc.textContent = res.notice || "Please review and edit all candidate fields before saving.";
           }
         }
-        showToast("Extracted candidate details. Please review before saving.", "success");
+        showToast("Extracted candidate details! Review before saving.", "success");
       }
     } catch (err) {
       console.warn("Extraction warning:", err);
-      showToast(err.message || "Document extraction could not parse structured fields. You can still enter details manually.", "warning");
+      showToast(err.message || "Document extraction could not parse text. You can still enter details manually.", "warning");
     } finally {
       if (extractOcrBtn) {
         extractOcrBtn.disabled = false;
@@ -208,13 +433,136 @@
     }
   }
 
-  // Dropzone events
+  // Bind Camera Action Buttons
+  if (startCameraBtn) {
+    startCameraBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      startCameraCapture();
+    });
+  }
+
+  if (cameraCard) {
+    cameraCard.addEventListener("click", (e) => {
+      if (e.target.closest("button") || e.target.closest("input")) return;
+      startCameraCapture();
+    });
+    cameraCard.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        startCameraCapture();
+      }
+    });
+  }
+
+  if (deviceCard) {
+    deviceCard.addEventListener("click", (e) => {
+      if (e.target.closest("button") || e.target.closest("input")) return;
+      if (fileInput) fileInput.click();
+    });
+    deviceCard.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        if (fileInput) fileInput.click();
+      }
+    });
+  }
+
+  if (triggerFileBtn) {
+    triggerFileBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (fileInput) fileInput.click();
+    });
+  }
+
+  if (cameraFileInput) {
+    cameraFileInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFileSelection(e.target.files[0], { source: "camera" });
+      }
+    });
+  }
+
+  if (fileInput) {
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFileSelection(e.target.files[0], { source: "device" });
+      }
+    });
+  }
+
+  // Camera Viewfinder Controls
+  if (shutterBtn) {
+    shutterBtn.addEventListener("click", capturePhotoFromVideo);
+  }
+
+  if (closeCameraModalBtn) {
+    closeCameraModalBtn.addEventListener("click", closeCameraModal);
+  }
+
+  if (cameraCancelBtn) {
+    cameraCancelBtn.addEventListener("click", closeCameraModal);
+  }
+
+  if (switchCameraBtn) {
+    switchCameraBtn.addEventListener("click", switchCamera);
+  }
+
+  if (fallbackCaptureBtn) {
+    fallbackCaptureBtn.addEventListener("click", () => {
+      closeCameraModal();
+      if (cameraFileInput) cameraFileInput.click();
+    });
+  }
+
+  if (cameraErrorDismissBtn) {
+    cameraErrorDismissBtn.addEventListener("click", closeCameraModal);
+  }
+
+  if (cameraDeviceFallbackBtn) {
+    cameraDeviceFallbackBtn.addEventListener("click", () => {
+      closeCameraModal();
+      if (fileInput) fileInput.click();
+    });
+  }
+
+  if (cameraModal) {
+    cameraModal.addEventListener("click", (e) => {
+      if (e.target === cameraModal) closeCameraModal();
+    });
+  }
+
+  // Preview Card Controls
+  if (retakePhotoBtn) {
+    retakePhotoBtn.addEventListener("click", startCameraCapture);
+  }
+
+  if (replaceFileBtn) {
+    replaceFileBtn.addEventListener("click", () => {
+      if (capturedSource === "camera") {
+        startCameraCapture();
+      } else if (fileInput) {
+        fileInput.click();
+      }
+    });
+  }
+
+  if (removeFileBtn) {
+    removeFileBtn.addEventListener("click", resetSelectedFile);
+  }
+
+  if (extractOcrBtn) {
+    extractOcrBtn.addEventListener("click", triggerOcrExtraction);
+  }
+
+  // Dropzone Events
   if (dropzone) {
-    dropzone.addEventListener("click", () => fileInput.click());
+    dropzone.addEventListener("click", () => {
+      if (fileInput) fileInput.click();
+    });
     dropzone.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        fileInput.click();
+        if (fileInput) fileInput.click();
       }
     });
 
@@ -236,36 +584,9 @@
 
     dropzone.addEventListener("drop", (e) => {
       if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleFileSelection(e.dataTransfer.files[0]);
+        handleFileSelection(e.dataTransfer.files[0], { source: "device" });
       }
     });
-  }
-
-  if (fileInput) {
-    fileInput.addEventListener("change", (e) => {
-      if (e.target.files && e.target.files[0]) {
-        handleFileSelection(e.target.files[0]);
-      }
-    });
-  }
-
-  if (triggerFileBtn) {
-    triggerFileBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      fileInput.click();
-    });
-  }
-
-  if (replaceFileBtn) {
-    replaceFileBtn.addEventListener("click", () => fileInput.click());
-  }
-
-  if (removeFileBtn) {
-    removeFileBtn.addEventListener("click", resetSelectedFile);
-  }
-
-  if (extractOcrBtn) {
-    extractOcrBtn.addEventListener("click", triggerOcrExtraction);
   }
 
   // ============================================================
@@ -335,24 +656,13 @@
         setUploadProgress(20, "Encrypting & preparing upload...");
 
         try {
-          const formData = new FormData();
-          if (selectedFile) {
-            formData.append("file", selectedFile);
-          }
-
+          const title = document.getElementById("vault-title") ? document.getElementById("vault-title").value.trim() : "";
           const date = document.getElementById("vault-date").value;
           const problem = document.getElementById("vault-problem").value.trim();
           const doctor = document.getElementById("vault-doctor").value.trim();
           const hospital = document.getElementById("vault-hospital").value.trim();
           const diagnosis = document.getElementById("vault-diagnosis").value.trim();
           const notes = document.getElementById("vault-notes").value.trim();
-
-          if (date) formData.append("prescription_date", date);
-          if (problem) formData.append("main_health_problem", problem);
-          if (doctor) formData.append("doctor_name", doctor);
-          if (hospital) formData.append("hospital_name", hospital);
-          if (diagnosis) formData.append("diagnosis", diagnosis);
-          if (notes) formData.append("notes", notes);
 
           // Collect medicines
           const medRows = medsContainer.querySelectorAll(".med-row");
@@ -369,6 +679,35 @@
               });
             }
           });
+
+          // Check if at least a photo/file OR basic details was provided
+          if (!selectedFile && !title && !problem && !doctor && medsList.length === 0) {
+            showToast("Please capture a photo or provide prescription details to save.", "warning");
+            submitVaultBtn.disabled = false;
+            submitVaultBtn.innerHTML = `Save Prescription`;
+            uploadStatus.style.display = "none";
+            setUploadProgress(null);
+            return;
+          }
+
+          const formData = new FormData();
+          if (selectedFile) {
+            formData.append("file", selectedFile);
+          }
+
+          if (title) {
+            formData.append("title", title);
+          } else if (selectedFile) {
+            formData.append("title", `Prescription - ${date || new Date().toISOString().split("T")[0]}`);
+          }
+
+          if (date) formData.append("prescription_date", date);
+          if (problem) formData.append("main_health_problem", problem);
+          if (doctor) formData.append("doctor_name", doctor);
+          if (hospital) formData.append("hospital_name", hospital);
+          if (diagnosis) formData.append("diagnosis", diagnosis);
+          if (notes) formData.append("notes", notes);
+
 
           if (medsList.length > 0) {
             formData.append("medicines", JSON.stringify(medsList));
@@ -511,7 +850,8 @@
           `;
         }
 
-        const primaryProblem = p.main_health_problem || p.diagnosis || "General Medical Prescription";
+        const prescTitle = p.title || p.main_health_problem || p.diagnosis || "Medical Prescription";
+        const primaryProblem = p.main_health_problem || p.diagnosis || "General Clinical Record";
         const dateStr = formatDate(p.prescription_date || p.created_at);
 
         // Medicines chips
@@ -521,14 +861,15 @@
           : `<span style="font-size:.8rem;color:var(--mute);font-style:italic">No medicines recorded</span>`;
 
         return `
-          <div class="presc-card glass tilt" id="prescription-card-${p.id}" data-id="${p.id}" tabindex="0" role="article" aria-label="Prescription from ${dateStr}">
+          <div class="presc-card glass tilt" id="prescription-card-${p.id}" data-id="${p.id}" tabindex="0" role="article" aria-label="Prescription ${esc(prescTitle)} from ${dateStr}">
             <div>
               <div class="presc-card-top">
                 ${thumbHtml}
                 <div class="presc-card-meta">
                   <span class="presc-card-date-badge">📅 ${dateStr}</span>
-                  <h3 class="presc-card-problem" title="${esc(primaryProblem)}">${esc(primaryProblem)}</h3>
+                  <h3 class="presc-card-problem" title="${esc(prescTitle)}">${esc(prescTitle)}</h3>
                   <p class="presc-card-doctor">👨‍⚕️ ${esc(p.doctor_name || "Doctor unspecified")}</p>
+                  ${p.main_health_problem ? `<div class="presc-card-hospital" style="color:var(--aqua)">🩺 ${esc(p.main_health_problem)}</div>` : ''}
                   ${p.hospital_name ? `<div class="presc-card-hospital">🏥 ${esc(p.hospital_name)}</div>` : ''}
                 </div>
               </div>
@@ -542,11 +883,12 @@
               <button class="btn btn-sm p view-presc-details-btn" data-id="${p.id}" type="button">
                 View Details
               </button>
-              <div style="display:flex;gap:.4rem;align-items:center">
+              <div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap">
                 <button class="btn btn-sm edit-presc-btn" data-id="${p.id}" type="button" title="Edit prescription details">
                   ✏️ Edit
                 </button>
-                ${fileUrl ? `<a href="${fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" title="View/Download file">📄 File</a>` : ''}
+                ${fileUrl ? `<a href="${fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" title="View prescription document">👁️ View</a>` : ''}
+                ${fileUrl ? `<a href="${fileUrl}&download=true" download="${esc(p.original_filename || 'prescription')}" class="btn btn-sm" title="Download prescription file">⬇️ Download</a>` : ''}
                 <button class="btn btn-sm btn-danger delete-presc-btn" data-id="${p.id}" type="button" title="Delete prescription">
                   Delete
                 </button>
@@ -632,9 +974,14 @@
     const fileUrl = p.file_path ? prescriptions.getFileUrl(p.id) : null;
     if (fileUrl) {
       modalFileLinkContainer.innerHTML = `
-        <a href="${fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm p" style="display:inline-flex;align-items:center;gap:.4rem">
-          <span>📄</span> Download Original ${p.original_filename || 'Prescription File'}
-        </a>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+          <a href="${fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="display:inline-flex;align-items:center;gap:.4rem">
+            <span>👁️</span> View Document
+          </a>
+          <a href="${fileUrl}&download=true" download="${esc(p.original_filename || 'prescription')}" class="btn btn-sm p" style="display:inline-flex;align-items:center;gap:.4rem">
+            <span>⬇️</span> Download ${esc(p.original_filename || 'File')}
+          </a>
+        </div>
       `;
     } else {
       modalFileLinkContainer.innerHTML = `<span style="font-size:.82rem;color:var(--mute)">No document attached</span>`;
@@ -648,6 +995,11 @@
       <!-- Priority Structured Fields (1 to 5) -->
       <table class="structured-summary-table">
         <tbody>
+          ${p.title ? `
+          <tr class="highlight-row">
+            <th>Prescription Title</th>
+            <td><strong style="color:var(--aqua)">${esc(p.title)}</strong></td>
+          </tr>` : ''}
           <tr class="highlight-row">
             <th>1. Date</th>
             <td><strong>${formatDate(p.prescription_date || p.created_at)}</strong></td>
@@ -687,6 +1039,10 @@
       <div id="inline-edit-fields-box" style="display:${isEditingDetails ? 'block' : 'none'};margin-bottom:1.6rem;padding:1.2rem;border-radius:12px;background:rgba(14,24,46,.7);border:1px solid rgba(94,224,208,.3)">
         <h4 style="margin:0 0 1rem;color:var(--aqua)">Edit Prescription Information</h4>
         <div class="vault-fields-grid" style="margin-top:0">
+          <div class="vault-field-group">
+            <label>Prescription Title</label>
+            <input type="text" id="edit-presc-title" value="${esc(p.title || '')}" placeholder="Prescription Title">
+          </div>
           <div class="vault-field-group">
             <label>Prescription Date</label>
             <input type="date" id="edit-presc-date" value="${p.prescription_date ? p.prescription_date.split('T')[0] : ''}">
@@ -803,6 +1159,7 @@
         saveEditBtn.textContent = "Saving...";
         try {
           const updatedData = {
+            title: document.getElementById("edit-presc-title") ? document.getElementById("edit-presc-title").value.trim() || null : null,
             prescription_date: document.getElementById("edit-presc-date").value || null,
             main_health_problem: document.getElementById("edit-presc-problem").value.trim() || null,
             doctor_name: document.getElementById("edit-presc-doctor").value.trim() || null,
@@ -1009,6 +1366,9 @@
   // Keyboard accessibility
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
+      if (cameraModal && (cameraModal.classList.contains("active") || cameraModal.style.display !== "none")) {
+        closeCameraModal();
+      }
       if (detailModal && detailModal.classList.contains("active")) {
         detailModal.classList.remove("active");
       }

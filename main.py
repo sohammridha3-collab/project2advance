@@ -99,6 +99,10 @@ class PrivateNetworkAccessMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         if request.headers.get("access-control-request-private-network") == "true" or request.headers.get("origin") == "null":
             response.headers["Access-Control-Allow-Private-Network"] = "true"
+        if request.headers.get("origin") == "null":
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            if "access-control-allow-credentials" in response.headers:
+                del response.headers["access-control-allow-credentials"]
         return response
 
 app.add_middleware(

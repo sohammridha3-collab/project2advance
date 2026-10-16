@@ -54,28 +54,66 @@
 
       <!-- Upload Form -->
       <form id="vault-upload-form" novalidate>
-        <!-- Centered Dropzone Container -->
-        <div class="vault-dropzone-box" id="vault-dropzone" tabindex="0" role="button" aria-label="Select prescription file">
-          <input type="file" id="prescription-file-input" accept=".pdf,.jpg,.jpeg,.png" aria-label="Prescription file input">
-          <div class="vault-dropzone-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
+        <!-- Two Upload Options: Option A (Take a Photo) & Option B (Upload from Device) -->
+        <div id="vault-options-container" class="vault-upload-options-grid">
+          <!-- Option A: Take a Photo -->
+          <div class="vault-option-card vault-camera-card" id="camera-option-card" tabindex="0" role="button" aria-label="Take a photo of prescription using camera">
+            <div class="vault-option-badge">Direct Capture</div>
+            <div class="vault-option-icon camera-icon-glow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </div>
+            <h3 class="vault-option-title">Take a Photo</h3>
+            <p class="vault-option-desc">Photograph your medical prescription directly using your device's camera with document alignment guidance.</p>
+            <div class="vault-option-actions">
+              <button type="button" class="btn p vault-action-btn" id="start-camera-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                Take Photo
+              </button>
+            </div>
+            <!-- Hidden mobile direct capture input -->
+            <input type="file" id="camera-file-input" accept="image/*" capture="environment" style="display:none" aria-label="Direct camera photo capture">
           </div>
-          <p style="font-size:1.05rem;font-weight:700;margin:0 0 .3rem;color:var(--text)">
-            Click to upload prescription file or drag & drop here
-          </p>
-          <p style="font-size:.85rem;color:var(--mute);margin:0 0 .8rem">
-            Supports PDF, JPG, JPEG, PNG (Maximum file size: 10 MB)
-          </p>
-          <button type="button" class="btn p vault-upload-btn-centered" id="trigger-file-btn" tabindex="-1">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Choose Prescription File
-          </button>
+
+          <!-- Option B: Upload from Device -->
+          <div class="vault-option-card vault-file-card" id="device-option-card" tabindex="0" role="button" aria-label="Upload prescription from device files or gallery">
+            <div class="vault-option-badge file-badge">Gallery & Files</div>
+            <div class="vault-option-icon file-icon-glow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <h3 class="vault-option-title">Upload from Device</h3>
+            <p class="vault-option-desc">Select existing prescription photos or PDF documents from your gallery or file storage (up to 10 MB).</p>
+            <div class="vault-option-actions">
+              <button type="button" class="btn vault-action-btn" id="trigger-file-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                Upload from Gallery
+              </button>
+            </div>
+            <input type="file" id="prescription-file-input" accept=".pdf,.jpg,.jpeg,.png" style="display:none" aria-label="Prescription file input">
+          </div>
+        </div>
+
+        <!-- Sleek Drag & Drop Strip -->
+        <div class="vault-drop-strip" id="vault-dropzone" tabindex="0" role="button" aria-label="Drop prescription file here">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--aqua)">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span>Or drag and drop prescription file here (PDF, JPG, PNG up to 10 MB)</span>
         </div>
 
         <!-- Selected File Preview Card (Displayed when a file is selected) -->
@@ -85,7 +123,10 @@
               <!-- Rendered dynamically (image thumbnail or PDF icon) -->
             </div>
             <div class="vault-file-meta-col">
-              <span id="preview-filename" class="vault-file-name">filename.pdf</span>
+              <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+                <span id="preview-filename" class="vault-file-name">filename.pdf</span>
+                <span id="preview-source-badge" class="vault-source-badge" style="display:none">📸 Camera Capture</span>
+              </div>
               <div class="vault-file-size-type">
                 <span id="preview-filesize">0 MB</span>
                 <span>•</span>
@@ -94,8 +135,9 @@
             </div>
           </div>
           <div class="vault-preview-actions">
+            <button id="retake-photo-btn" type="button" class="btn btn-sm p" style="display:none">📷 Retake Photo</button>
             <button id="extract-ocr-btn" type="button" class="btn btn-sm" style="background:rgba(0,212,170,.12);border:1px solid var(--aqua);color:var(--aqua);font-weight:700">✨ Extract with AI</button>
-            <button id="replace-file-btn" type="button" class="btn btn-sm">Replace File</button>
+            <button id="replace-file-btn" type="button" class="btn btn-sm">Choose Another File</button>
             <button id="remove-file-btn" type="button" class="btn btn-sm btn-danger">Remove</button>
           </div>
         </div>
@@ -114,45 +156,52 @@
         <!-- Structured Prescription Details Fields -->
         <div class="vault-fields-grid">
           <div class="vault-field-group">
-            <label for="vault-date">
-              <span>📅</span> Prescription Date
+            <label for="vault-title">
+              <span>🔖</span> Prescription Title (Optional)
             </label>
-            <input type="date" id="vault-date" name="prescription_date">
+            <input type="text" id="vault-title" name="title" placeholder="e.g. Cardiology Visit, Regular Consultation">
           </div>
 
           <div class="vault-field-group">
             <label for="vault-problem">
-              <span>🩺</span> Main Health Problem
+              <span>🩺</span> Main Health Problem (Optional)
             </label>
-            <input type="text" id="vault-problem" name="main_health_problem" placeholder="e.g. Hypertension, Angina, Fever">
+            <input type="text" id="vault-problem" name="main_health_problem" placeholder="e.g. Hypertension, Seasonal Flu, Chest Pain">
           </div>
 
           <div class="vault-field-group">
             <label for="vault-doctor">
-              <span>👨‍⚕️</span> Doctor Name
+              <span>👨‍⚕️</span> Doctor Name (Optional)
             </label>
             <input type="text" id="vault-doctor" name="doctor_name" placeholder="e.g. Dr. Sarah Jenkins, MD">
           </div>
 
           <div class="vault-field-group">
+            <label for="vault-date">
+              <span>📅</span> Prescription Date (Optional)
+            </label>
+            <input type="date" id="vault-date" name="prescription_date">
+          </div>
+
+          <div class="vault-field-group">
             <label for="vault-hospital">
-              <span>🏥</span> Hospital or Clinic
+              <span>🏥</span> Hospital or Clinic (Optional)
             </label>
             <input type="text" id="vault-hospital" name="hospital_name" placeholder="e.g. City Heart & Health Center">
           </div>
 
           <div class="vault-field-group">
             <label for="vault-diagnosis">
-              <span>📋</span> Clinical Diagnosis
+              <span>📋</span> Clinical Diagnosis (Optional)
             </label>
             <input type="text" id="vault-diagnosis" name="diagnosis" placeholder="e.g. Essential Primary Hypertension">
           </div>
 
-          <div class="vault-field-group">
+          <div class="vault-field-group" style="grid-column: 1 / -1">
             <label for="vault-notes">
-              <span>📝</span> Instructions / Additional Notes
+              <span>📝</span> Dosage & Instructions / Notes (Optional)
             </label>
-            <input type="text" id="vault-notes" name="notes" placeholder="e.g. Take with food; follow-up in 30 days">
+            <input type="text" id="vault-notes" name="notes" placeholder="e.g. Take with warm water after meals; review in 3 weeks">
           </div>
         </div>
 
@@ -265,6 +314,77 @@
         <div class="vault-modal-footer" style="justify-content:flex-end;gap:.6rem">
           <button type="button" class="btn btn-sm" id="abort-delete-btn">Cancel</button>
           <button type="button" class="btn btn-sm btn-danger" id="execute-delete-btn">Yes, Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. LIVE CAMERA CAPTURE MODAL -->
+    <div id="camera-modal" class="vault-modal-overlay camera-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="camera-modal-title" style="display:none">
+      <div class="camera-modal-box">
+        <div class="camera-modal-header">
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <span class="camera-live-pulse" aria-hidden="true"></span>
+            <h3 id="camera-modal-title" style="margin:0;font-size:1.1rem;color:var(--text);display:flex;align-items:center;gap:.4rem">
+              <span>📷</span> Prescription Camera Scanner
+            </h3>
+          </div>
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <button type="button" id="switch-camera-btn" class="btn btn-sm" title="Switch front/rear camera" style="display:none">
+              🔄 Switch Camera
+            </button>
+            <button type="button" id="close-camera-modal-btn" class="vault-modal-close" aria-label="Close camera modal">&times;</button>
+          </div>
+        </div>
+
+        <div class="camera-viewfinder-container">
+          <!-- Video element for live stream -->
+          <video id="camera-video" autoplay playsinline muted></video>
+          <canvas id="camera-canvas" style="display:none"></canvas>
+
+          <!-- Framing guide overlay -->
+          <div class="camera-guide-overlay" id="camera-guide-overlay">
+            <div class="camera-corner top-left"></div>
+            <div class="camera-corner top-right"></div>
+            <div class="camera-corner bottom-left"></div>
+            <div class="camera-corner bottom-right"></div>
+            <div class="camera-guide-text">Align prescription document within frame</div>
+          </div>
+
+          <!-- Loading state overlay -->
+          <div id="camera-loading-overlay" class="camera-state-overlay">
+            <div class="camera-spinner"></div>
+            <p id="camera-status-text" style="margin-top:.8rem;color:var(--text);font-size:.92rem">Starting camera...</p>
+          </div>
+
+          <!-- Error / Permission fallback overlay -->
+          <div id="camera-error-overlay" class="camera-state-overlay" style="display:none">
+            <div style="font-size:2.4rem;margin-bottom:.5rem">📸🚫</div>
+            <h4 style="margin:0 0 .4rem;color:#ff6b6b">Camera Access Blocked or Unavailable</h4>
+            <p id="camera-error-desc" style="color:var(--mute);font-size:.85rem;max-width:320px;margin:0 0 1rem;line-height:1.4">
+              Camera access is denied or not supported in this browser context. You can still photograph your prescription using the direct device camera option.
+            </p>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center">
+              <button type="button" id="fallback-capture-btn" class="btn btn-sm p">
+                📷 Open Device Camera App
+              </button>
+              <button type="button" id="camera-error-dismiss-btn" class="btn btn-sm">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Camera bottom controls bar -->
+        <div class="camera-controls-bar">
+          <button type="button" id="camera-cancel-btn" class="btn btn-sm">Cancel</button>
+          <div class="camera-shutter-wrapper">
+            <button type="button" id="shutter-btn" class="camera-shutter-btn" title="Capture prescription photo" aria-label="Capture prescription photo">
+              <span class="camera-shutter-inner"></span>
+            </button>
+          </div>
+          <button type="button" id="camera-device-fallback-btn" class="btn btn-sm" title="Upload from device files instead">
+            📁 From Gallery
+          </button>
         </div>
       </div>
     </div>

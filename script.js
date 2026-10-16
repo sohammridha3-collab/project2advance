@@ -141,13 +141,66 @@
       s.innerHTML = CONFIG.OPTIONS[s.dataset.options].map(o => `<option>${esc(o)}</option>`).join("");
     });
     const btn = document.getElementById("submit-btn"), err = document.getElementById("form-error");
+    const btnLabel = btn ? (btn.querySelector(".btn-label") || btn) : null;
+    const originalLabel = btnLabel ? btnLabel.textContent : "Submit Assessment";
+
+    // Live Red-Flag Clinical Emergency Monitor
+    const redFlagBox = document.getElementById("red-flag-alert");
+    function checkLiveRedFlags() {
+      if (!redFlagBox) return;
+      const sbp = parseFloat(form.querySelector("#systolic_blood_pressure")?.value || 0);
+      const hr = parseFloat(form.querySelector("#heart_rate")?.value || 0);
+      const spo2 = parseFloat(form.querySelector("#oxygen_saturation")?.value || 100);
+      const cp = parseFloat(form.querySelector("#chest_pain_severity")?.value || 0);
+
+      const flags = [];
+      if (sbp >= 180) flags.push(`Critical Systolic BP (${sbp} mmHg — Hypertensive Crisis)`);
+      if (spo2 > 0 && spo2 < 90) flags.push(`Severe Hypoxemia (SpO₂ ${spo2}%)`);
+      if (cp >= 7) flags.push(`Severe Chest Pain (${cp}/10)`);
+      if (hr > 140) flags.push(`Extreme Tachycardia (${hr} bpm)`);
+      else if (hr > 0 && hr < 40) flags.push(`Extreme Bradycardia (${hr} bpm)`);
+
+      if (flags.length > 0) {
+        redFlagBox.hidden = false;
+        redFlagBox.style.display = "flex";
+        redFlagBox.innerHTML = `
+          <div class="urgent-ico-3d-wrap">
+            <span class="urgent-ico" aria-hidden="true">⚠️</span>
+            <span class="urgent-pulse-wave"></span>
+          </div>
+          <div class="urgent-content-col">
+            <div class="urgent-badge-pill" style="background:rgba(239,68,68,0.2);color:#f87171;border-color:rgba(239,68,68,0.4)">Critical Vital Warning</div>
+            <h3 style="margin:.2rem 0;color:#fca5a5;font-size:1.05rem">Immediate Clinical Attention Advised</h3>
+            <p style="margin:0 0 .4rem;font-size:.88rem;color:var(--text)">Entered values indicate urgent clinical deviation: <strong>${esc(flags.join(" • "))}</strong>.</p>
+            <p style="margin:0;font-size:.82rem;color:var(--mute)">If experiencing acute pressure, shortness of breath, or dizziness, <strong>call emergency services immediately (112 / 911)</strong>.</p>
+          </div>
+        `;
+      } else {
+        redFlagBox.hidden = true;
+        redFlagBox.style.display = "none";
+        redFlagBox.innerHTML = "";
+      }
+    }
+
+    form.querySelectorAll("input, select").forEach(inp => {
+      inp.addEventListener("input", checkLiveRedFlags);
+      inp.addEventListener("change", checkLiveRedFlags);
+    });
+
     form.addEventListener("submit", async e => {
       e.preventDefault();
       if (!form.checkValidity()) { form.reportValidity(); return; }
       const fd = Object.fromEntries(new FormData(form)), text = ["gender", "smoker_status", "diabetes_history"], payload = {};
       for (const [k, v] of Object.entries(fd)) payload[k] = text.includes(k) ? v : Number(v);
       payload.age = Math.round(payload.age);
-      btn.disabled = true; btn.textContent = "Analyzing & Saving…"; err.textContent = "";
+
+      if (btn) btn.disabled = true;
+      if (btnLabel) btnLabel.textContent = "Analyzing & Saving…";
+      if (err) {
+        err.hidden = true;
+        err.style.display = "none";
+        err.textContent = "";
+      }
 
       try {
         const result = window.HR_API
@@ -161,8 +214,13 @@
         store.set({ result, patient: payload, savedAt: Date.now() });
         location.href = "result.html";
       } catch (ex) {
-        err.textContent = `Could not get a result: ${ex.message}. Make sure FastAPI is running.`;
-        btn.disabled = false; btn.textContent = "Analyze my risk";
+        if (err) {
+          err.hidden = false;
+          err.style.display = "flex";
+          err.textContent = `Could not get a result: ${ex.message}. Please verify the backend server is running.`;
+        }
+        if (btn) btn.disabled = false;
+        if (btnLabel) btnLabel.textContent = originalLabel;
       }
     });
   }
@@ -253,6 +311,26 @@
         });
       } catch {
         todayDateEl.textContent = new Date().toDateString();
+      }
+    }
+
+    // Live Backend & ML Model Status Indicator
+    const modelStatusEl = document.getElementById("dash-model-status");
+    if (modelStatusEl) {
+      if (window.HR_API && window.HR_API.checkHealth) {
+        window.HR_API.checkHealth().then(health => {
+          if (health.online && health.model_loaded) {
+            modelStatusEl.innerHTML = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:5px"></span> ML Model Online (Random Forest)`;
+          } else if (health.online) {
+            modelStatusEl.innerHTML = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#fbbf24;margin-right:5px"></span> Backend Connected (Model Standby)`;
+          } else {
+            modelStatusEl.innerHTML = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f87171;margin-right:5px"></span> Backend Offline (Port 8000)`;
+          }
+        }).catch(() => {
+          modelStatusEl.innerHTML = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f87171;margin-right:5px"></span> Backend Offline (Port 8000)`;
+        });
+      } else {
+        modelStatusEl.textContent = "Random Forest Active";
       }
     }
 

@@ -92,6 +92,7 @@ class Prescription(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    title = Column(String(200), nullable=True)
     doctor_name = Column(String(100), nullable=True)
     hospital_name = Column(String(150), nullable=True)
     prescription_date = Column(DateTime(timezone=True), nullable=True)

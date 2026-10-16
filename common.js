@@ -8,9 +8,10 @@
   const currentPath = window.location.pathname.split("/").pop() || "index.html";
   const isAuthPage = currentPath === "login.html";
   const isAdminPage = currentPath === "admin.html";
+  const isPublicPage = ["index.html", "result.html", "login.html", "share.html", ""].includes(currentPath);
 
-  // ROUTE GUARD: Ensure login/register is shown before home page or any clinical view.
-  if (!auth.isAuthenticated() && !isAuthPage && !isAdminPage) {
+  // ROUTE GUARD: Ensure login is required only for private medical record pages.
+  if (!auth.isAuthenticated() && !isPublicPage && !isAdminPage) {
     window.location.replace("login.html");
     return;
   }
@@ -115,7 +116,16 @@
         }, 200);
       });
     } else {
-      container.innerHTML = "";
+      container.innerHTML = `
+        <a href="login.html" class="btn btn-sm btn-login-nav" title="Sign in or register an account">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          <span>Sign In</span>
+        </a>
+      `;
     }
   }
 
@@ -261,7 +271,7 @@
 
   // Check auth state on startup
   async function initAuth() {
-    if (!isAuthPage) {
+    if (!isPublicPage && !isAdminPage) {
       if (!auth.isAuthenticated()) {
         window.location.replace("login.html");
         return;
@@ -271,6 +281,9 @@
         window.location.replace("login.html");
         return;
       }
+    } else if (auth.isAuthenticated()) {
+      // Validate session in background without blocking public page render
+      auth.getMe().catch(() => {});
     }
     setupNavigation();
     renderAuthWidget();
@@ -278,7 +291,7 @@
 
   window.addEventListener("hr:auth_changed", (e) => {
     renderAuthWidget();
-    if (!e.detail.user && !isAuthPage) {
+    if (!e.detail.user && !isPublicPage && !isAdminPage) {
       window.location.replace("login.html");
     }
   });
