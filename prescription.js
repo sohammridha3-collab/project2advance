@@ -128,12 +128,84 @@
     previewCard.style.display = "flex";
   }
 
+  const extractOcrBtn = document.getElementById("extract-ocr-btn");
+  const extractionBanner = document.getElementById("vault-extraction-banner");
+  const extractionStatusTitle = document.getElementById("extraction-status-title");
+  const extractionStatusDesc = document.getElementById("extraction-status-desc");
+
   function resetSelectedFile() {
     selectedFile = null;
     fileInput.value = "";
     previewCard.style.display = "none";
     dropzone.style.display = "flex";
     previewThumbBox.innerHTML = "";
+    if (extractionBanner) extractionBanner.style.display = "none";
+  }
+
+  async function triggerOcrExtraction() {
+    if (!selectedFile) {
+      showToast("Please choose a prescription file first.", "warning");
+      return;
+    }
+
+    if (extractOcrBtn) {
+      extractOcrBtn.disabled = true;
+      extractOcrBtn.textContent = "⏳ Extracting...";
+    }
+
+    try {
+      showToast("Analyzing prescription document...", "info");
+      const fd = new FormData();
+      fd.append("file", selectedFile);
+      const res = await prescriptions.extract(fd);
+
+      if (res && res.extracted_data) {
+        const d = res.extracted_data;
+        const dateInput = document.getElementById("vault-date");
+        const docInput = document.getElementById("vault-doctor");
+        const hospInput = document.getElementById("vault-hospital");
+        const diagInput = document.getElementById("vault-diagnosis");
+
+        if (d.prescription_date && dateInput && !dateInput.value) {
+          dateInput.value = d.prescription_date;
+        }
+        if (d.doctor_name && docInput && !docInput.value) {
+          docInput.value = d.doctor_name;
+        }
+        if (d.hospital_name && hospInput && !hospInput.value) {
+          hospInput.value = d.hospital_name;
+        }
+        if (d.diagnosis && diagInput && !diagInput.value) {
+          diagInput.value = d.diagnosis;
+        }
+
+        // Populate medicine candidates if none entered yet
+        if (Array.isArray(d.medicines) && d.medicines.length > 0) {
+          if (medsContainer.querySelectorAll(".med-row").length === 0) {
+            d.medicines.forEach(m => createMedicineRow(m));
+          }
+        }
+
+        if (extractionBanner) {
+          extractionBanner.style.display = "flex";
+          if (extractionStatusTitle) {
+            extractionStatusTitle.textContent = `Candidate details extracted (Status: ${d.status || 'unverified'})`;
+          }
+          if (extractionStatusDesc) {
+            extractionStatusDesc.textContent = res.notice || "Please review and edit all candidate fields before saving.";
+          }
+        }
+        showToast("Extracted candidate details. Please review before saving.", "success");
+      }
+    } catch (err) {
+      console.warn("Extraction warning:", err);
+      showToast(err.message || "Document extraction could not parse structured fields. You can still enter details manually.", "warning");
+    } finally {
+      if (extractOcrBtn) {
+        extractOcrBtn.disabled = false;
+        extractOcrBtn.textContent = "✨ Extract with AI";
+      }
+    }
   }
 
   // Dropzone events
@@ -190,6 +262,10 @@
 
   if (removeFileBtn) {
     removeFileBtn.addEventListener("click", resetSelectedFile);
+  }
+
+  if (extractOcrBtn) {
+    extractOcrBtn.addEventListener("click", triggerOcrExtraction);
   }
 
   // ============================================================

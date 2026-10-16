@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doctor-Visit Briefing | HealthBridge AI</title>
+  <meta name="description" content="Generate, customize, export, and securely share concise clinical appointment summaries for physician visits.">
+  <meta name="theme-color" content="#060c19">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="orb-float a" aria-hidden="true"></div>
+  <div class="orb-float b" aria-hidden="true"></div>
+
+  <!-- Print Only Header -->
+  <div class="print-only-header" style="display:none">
+    <h1>HealthBridge AI &bull; Clinical Appointment Briefing</h1>
+    <p style="margin:0;color:#4b5563">Personal Health Continuity Summary &bull; Prepared by Patient for Physician Review</p>
+    <p style="margin:.3rem 0 0;font-size:9pt;color:#6b7280">Notice: This summary compiles patient-reported symptoms, recorded vitals, and documented prescriptions for clinical discussion. It does not replace licensed diagnostic evaluation.</p>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="HealthBridge AI home">
+      <b>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12h4l3-8 4 16 3-8h4" />
+        </svg>
+      </b>
+      <span>HealthBridge AI</span>
+    </a>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span></button>
+    <nav id="menu" class="menu" aria-label="Main">
+      <a href="index.html">Dashboard</a>
+      <a href="timeline.html">Timeline</a>
+      <a href="briefing.html" aria-current="page" class="active">Doctor Briefing</a>
+      <a href="prescription.html">Prescription Vault</a>
+      <a href="recommendation.html">Recommendations</a>
+      <a href="history.html">Assessments</a>
+      <a href="allergies.html">Allergies</a>
+      <a href="problems.html">Symptom Log</a>
+    </nav>
+  </header>
+
+  <main id="main" class="container">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.8rem;flex-wrap:wrap;gap:1rem">
+      <div>
+        <h1 class="ptitle" style="margin:0 0 .3rem">Doctor-Visit Briefing</h1>
+        <p class="psub" style="margin:0">Prepare a concise, physician-ready summary from your health records before your appointment.</p>
+      </div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button id="btn-new-briefing" class="btn btn-sm p" type="button">+ New Briefing</button>
+      </div>
+    </div>
+
+    <!-- Generator Generator Box -->
+    <section class="glass" style="padding:1.8rem;margin-bottom:2rem;border-radius:16px" aria-labelledby="draft-heading">
+      <h2 id="draft-heading" style="margin:0 0 .5rem;font-size:1.25rem">Auto-Synthesize Clinical Briefing</h2>
+      <p style="color:var(--text-muted);font-size:.88rem;margin:0 0 1.2rem">
+        Specify your appointment reason. The <strong>Health Context Engine</strong> will pull your latest recorded vitals, active symptoms, allergies, and active medications, and construct targeted questions to discuss with your physician.
+      </p>
+
+      <form id="draft-form" style="display:flex;gap:1rem;flex-wrap:wrap">
+        <input type="text" id="draft-reason" required placeholder="e.g. Cardiology check-up, blood pressure review, or morning palpitations" style="flex:1;min-width:280px;min-height:46px;padding:0 1rem;border-radius:12px;border:1px solid var(--border-subtle);background:rgba(8,16,34,.7);color:var(--text-main);font-size:.95rem">
+        <button id="btn-generate-draft" class="btn p" type="submit" style="white-space:nowrap">
+          <span>⚡ Auto-Generate from Records</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Briefing Editor Form -->
+    <section id="briefing-editor-section" class="glass" style="padding:2rem;margin-bottom:2.5rem;border-radius:16px;display:none" aria-labelledby="editor-title">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:1px solid var(--border-subtle);padding-bottom:1rem;flex-wrap:wrap;gap:.8rem">
+        <div>
+          <h2 id="editor-title" style="margin:0 0 .2rem;font-size:1.35rem">Edit Clinical Briefing</h2>
+          <p style="margin:0;color:var(--text-muted);font-size:.84rem">Review and personalize all details before your visit.</p>
+        </div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button id="btn-print-briefing" class="btn btn-sm" type="button">🖨️ Print / PDF</button>
+          <button id="btn-share-modal" class="btn btn-sm" type="button" style="border-color:var(--primary);color:var(--primary)">🔗 Share with Doctor</button>
+        </div>
+      </div>
+
+      <form id="briefing-form" class="briefing-editor" novalidate>
+        <input type="hidden" id="briefing-id" value="">
+
+        <div>
+          <label for="briefing-title" style="display:block;font-size:.85rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">Briefing Title *</label>
+          <input type="text" id="briefing-title" required placeholder="e.g. Cardiology Consultation Summary" style="width:100%;box-sizing:border-box;min-height:44px;padding:0 1rem;border-radius:10px;border:1px solid var(--border-subtle);background:rgba(14,28,58,.6);color:var(--text-main);font-size:1rem;font-weight:600">
+        </div>
+
+        <div>
+          <label for="briefing-reason" style="display:block;font-size:.85rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">Reason for Visit *</label>
+          <input type="text" id="briefing-reason" required placeholder="e.g. Hypertension management and occasional chest fluttering" style="width:100%;box-sizing:border-box;min-height:44px;padding:0 1rem;border-radius:10px;border:1px solid var(--border-subtle);background:rgba(14,28,58,.6);color:var(--text-main);font-size:.92rem">
+        </div>
+
+        <div class="briefing-section-box">
+          <h3><span>📝</span> Recent Symptoms &amp; Complaints</h3>
+          <textarea id="briefing-symptoms" class="briefing-textarea" placeholder="List any acute or ongoing symptoms with duration..."></textarea>
+        </div>
+
+        <div class="briefing-section-box">
+          <h3><span>🩺</span> Objective Vitals &amp; AI Risk Screening</h3>
+          <textarea id="briefing-vitals" class="briefing-textarea" placeholder="Recent blood pressure, heart rate, oxygen levels, and model estimates..."></textarea>
+        </div>
+
+        <div class="briefing-section-box">
+          <h3><span>🛡️</span> Documented Allergies &amp; Sensitivities</h3>
+          <textarea id="briefing-allergies" class="briefing-textarea" placeholder="Documented drug or food sensitivities..."></textarea>
+        </div>
+
+        <div class="briefing-section-box">
+          <h3><span>💊</span> Current Prescription Medications</h3>
+          <textarea id="briefing-medicines" class="briefing-textarea" placeholder="Active prescription and over-the-counter medications..."></textarea>
+        </div>
+
+        <div class="briefing-section-box">
+          <h3><span>❓</span> Questions to Ask Your Physician</h3>
+          <textarea id="briefing-questions" class="briefing-textarea" placeholder="Key discussion questions for your consultation..." style="min-height:110px"></textarea>
+        </div>
+
+        <div class="briefing-section-box">
+          <h3><span>📋</span> Doctor's Instructions &amp; Follow-up Notes</h3>
+          <textarea id="briefing-notes" class="briefing-textarea" placeholder="Notes recorded during or after your appointment..."></textarea>
+        </div>
+
+        <div id="briefing-status-box" style="display:none" class="form-state-box"></div>
+
+        <div class="briefing-action-bar">
+          <button id="btn-save-briefing" class="btn p" type="submit">💾 Save Briefing</button>
+          <button id="btn-cancel-edit" class="btn" type="button">Close Editor</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Saved Briefings List -->
+    <section aria-labelledby="saved-briefings-heading">
+      <h2 id="saved-briefings-heading" style="margin:0 0 1rem;font-size:1.3rem">Saved Visit Briefings</h2>
+      <div id="briefings-list-container">
+        <p style="color:var(--text-muted);font-size:.9rem">Loading saved briefings...</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Secure Share Modal -->
+  <div id="share-modal-overlay" class="modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
+    <div class="glass modal-card" style="max-width:540px">
+      <button class="modal-close" id="btn-close-share-modal" type="button" aria-label="Close">&times;</button>
+      <h2 id="share-modal-title" style="margin:0 0 .3rem;font-size:1.3rem">Share Briefing with Clinician</h2>
+      <p style="color:var(--text-muted);font-size:.86rem;margin:0 0 1.2rem">
+        Create a time-bounded, encrypted link allowing a doctor or caregiver to view <em>only</em> this briefing. You can revoke access at any time.
+      </p>
+
+      <form id="share-form" novalidate>
+        <div style="margin-bottom:1rem">
+          <label for="share-recipient-name" style="font-size:.85rem;display:block;margin-bottom:.3rem;color:var(--text-secondary)">Doctor / Clinic Name</label>
+          <input type="text" id="share-recipient-name" placeholder="e.g. Dr. Sarah Jenkins, City Health" style="width:100%;box-sizing:border-box;min-height:42px;padding:0 .9rem;border-radius:10px;border:1px solid var(--border-subtle);background:rgba(8,16,34,.7);color:var(--text-main)">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem">
+          <div>
+            <label for="share-duration" style="font-size:.85rem;display:block;margin-bottom:.3rem;color:var(--text-secondary)">Link Expiration</label>
+            <select id="share-duration" style="width:100%;min-height:42px;padding:0 .8rem;border-radius:10px;border:1px solid var(--border-subtle);background:rgba(8,16,34,.7);color:var(--text-main)">
+              <option value="24">24 Hours</option>
+              <option value="72" selected>3 Days (72 Hours)</option>
+              <option value="168">7 Days (1 Week)</option>
+              <option value="720">30 Days</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="share-pin" style="font-size:.85rem;display:block;margin-bottom:.3rem;color:var(--text-secondary)">Security PIN (Optional)</label>
+            <input type="text" id="share-pin" placeholder="e.g. 1234" maxlength="10" style="width:100%;box-sizing:border-box;min-height:42px;padding:0 .9rem;border-radius:10px;border:1px solid var(--border-subtle);background:rgba(8,16,34,.7);color:var(--text-main)">
+          </div>
+        </div>
+
+        <button id="btn-generate-share-link" class="btn p" type="submit" style="width:100%">Generate Secure Shareable Link</button>
+      </form>
+
+      <div id="share-result-container" style="display:none;margin-top:1.2rem">
+        <label style="font-size:.82rem;color:var(--text-secondary);font-weight:600">Clinician Access URL:</label>
+        <div class="share-code-box">
+          <span id="share-link-url" style="user-select:all"></span>
+          <button id="btn-copy-share-url" class="btn btn-sm" type="button" style="white-space:nowrap">Copy Link</button>
+        </div>
+        <p style="font-size:.82rem;color:var(--text-muted);margin:0">Send this URL to your doctor or caregiver. They can view the briefing without signing up.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site">HealthBridge AI &copy; 2026 &bull; Personal Health Continuity Platform &bull; Clinical information is for health organization and doctor collaboration.</footer>
+  <script src="api.js" defer></script>
+  <script src="common.js" defer></script>
+  <script src="briefing.js" defer></script>
+</body>
+
+</html>

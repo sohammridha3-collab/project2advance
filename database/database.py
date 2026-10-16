@@ -58,8 +58,70 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     migrate_prescription_schema()
     migrate_assessment_schema()
+    migrate_healthbridge_schema()
     seed_reference_medicines()
     seed_demo_user()
+
+def migrate_healthbridge_schema():
+    """Safely adds missing HealthBridge AI columns and tables to existing database."""
+    from sqlalchemy import inspect, text
+    try:
+        inspector = inspect(engine)
+        table_names = inspector.get_table_names()
+        with engine.connect() as conn:
+            # 1. recent_problems: status, notes
+            if "recent_problems" in table_names:
+                prob_cols = [c["name"] for c in inspector.get_columns("recent_problems")]
+                if "status" not in prob_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE recent_problems ADD COLUMN status VARCHAR(50) DEFAULT 'Active'"))
+                        conn.commit()
+                        logger.info("[Database] Migrated recent_problems: added status column.")
+                    except Exception as e:
+                        logger.warning(f"RecentProblem status migration note: {e}")
+                if "notes" not in prob_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE recent_problems ADD COLUMN notes TEXT"))
+                        conn.commit()
+                        logger.info("[Database] Migrated recent_problems: added notes column.")
+                    except Exception as e:
+                        logger.warning(f"RecentProblem notes migration note: {e}")
+
+            # 2. allergies: verification_status, created_at
+            if "allergies" in table_names:
+                allg_cols = [c["name"] for c in inspector.get_columns("allergies")]
+                if "verification_status" not in allg_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE allergies ADD COLUMN verification_status VARCHAR(50) DEFAULT 'Self-Reported'"))
+                        conn.commit()
+                        logger.info("[Database] Migrated allergies: added verification_status column.")
+                    except Exception as e:
+                        logger.warning(f"Allergy verification_status migration note: {e}")
+                if "created_at" not in allg_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE allergies ADD COLUMN created_at DATETIME DEFAULT (CURRENT_TIMESTAMP)"))
+                        conn.commit()
+                        logger.info("[Database] Migrated allergies: added created_at column.")
+                    except Exception as e:
+                        try:
+                            conn.execute(text("ALTER TABLE allergies ADD COLUMN created_at DATETIME"))
+                            conn.commit()
+                            logger.info("[Database] Migrated allergies: added created_at column (nullable).")
+                        except Exception as e2:
+                            logger.warning(f"Allergy created_at migration note: {e2}")
+
+            # 3. prescriptions: extraction_status
+            if "prescriptions" in table_names:
+                rx_cols = [c["name"] for c in inspector.get_columns("prescriptions")]
+                if "extraction_status" not in rx_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE prescriptions ADD COLUMN extraction_status VARCHAR(50) DEFAULT 'Manual'"))
+                        conn.commit()
+                        logger.info("[Database] Migrated prescriptions: added extraction_status column.")
+                    except Exception as e:
+                        logger.warning(f"Prescription extraction_status migration note: {e}")
+    except Exception as exc:
+        logger.warning(f"HealthBridge schema migration check note: {exc}")
 
 def migrate_assessment_schema():
     """Safely adds the nullable probabilities_json column to health_assessments on existing DBs."""

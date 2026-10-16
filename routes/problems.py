@@ -54,12 +54,46 @@ def create_user_problem(
         problem_text=problem_in.problem_text.strip(),
         problem_category=category.strip(),
         severity=problem_in.severity.strip() if problem_in.severity else "Moderate",
-        duration=problem_in.duration.strip() if problem_in.duration else None
+        duration=problem_in.duration.strip() if problem_in.duration else None,
+        status=problem_in.status.strip() if problem_in.status else "Active",
+        notes=problem_in.notes.strip() if problem_in.notes else None
     )
     db.add(new_problem)
     db.commit()
     db.refresh(new_problem)
     return new_problem
+
+@router.put("/{problem_id}", response_model=ProblemOut)
+def update_user_problem(
+    problem_id: int,
+    problem_update: ProblemCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    """Updates an existing symptom record owned by the authenticated user."""
+    problem = db.query(RecentProblem).filter(
+        RecentProblem.id == problem_id,
+        RecentProblem.user_id == user.id
+    ).first()
+
+    if not problem:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Problem record not found.")
+
+    if problem_update.problem_text:
+        problem.problem_text = problem_update.problem_text.strip()
+        problem.problem_category = problem_update.problem_category or infer_problem_category(problem.problem_text)
+    if problem_update.severity:
+        problem.severity = problem_update.severity.strip()
+    if problem_update.duration is not None:
+        problem.duration = problem_update.duration.strip() if problem_update.duration else None
+    if problem_update.status:
+        problem.status = problem_update.status.strip()
+    if problem_update.notes is not None:
+        problem.notes = problem_update.notes.strip() if problem_update.notes else None
+
+    db.commit()
+    db.refresh(problem)
+    return problem
 
 @router.delete("/{problem_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user_problem(

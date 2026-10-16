@@ -4,8 +4,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prescription Vault | AI Health Risk Prediction</title>
-  <meta name="description" content="Secure Prescription Vault: upload doctor prescriptions, manage medications, and view structured clinical records.">
+  <title>Prescription Vault | HealthBridge AI</title>
+  <meta name="description" content="Secure Prescription Vault: upload doctor prescriptions, extract structured medicine details, and maintain your clinical records.">
   <meta name="theme-color" content="#060c19">
   <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -18,22 +18,23 @@
   <div class="orb-float b" aria-hidden="true"></div>
 
   <header class="topbar">
-    <a class="brand" href="index.html" aria-label="AI Health Risk Prediction home">
+    <a class="brand" href="index.html" aria-label="HealthBridge AI home">
       <b>
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 12h4l3-8 4 16 3-8h4" />
         </svg>
       </b>
-      <span>AI Health Risk</span>
+      <span>HealthBridge AI</span>
     </a>
     <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span></button>
     <nav id="menu" class="menu" aria-label="Main">
       <a href="index.html">Home</a>
-      <a href="history.html">Health History</a>
-      <a href="prescription.html" aria-current="page">Prescription Vault</a>
+      <a href="timeline.html">Timeline</a>
+      <a href="history.html">History</a>
+      <a href="prescription.html" aria-current="page">Vault</a>
       <a href="allergies.html">Allergies</a>
-      <a href="result.html">Result</a>
-      <a href="recommendation.html">Recommendations</a>
+      <a href="recommendation.html">Guidance</a>
+      <a href="briefing.html">Doctor Briefing</a>
     </nav>
   </header>
 
@@ -93,8 +94,20 @@
             </div>
           </div>
           <div class="vault-preview-actions">
+            <button id="extract-ocr-btn" type="button" class="btn btn-sm" style="background:rgba(0,212,170,.12);border:1px solid var(--aqua);color:var(--aqua);font-weight:700">✨ Extract with AI</button>
             <button id="replace-file-btn" type="button" class="btn btn-sm">Replace File</button>
             <button id="remove-file-btn" type="button" class="btn btn-sm btn-danger">Remove</button>
+          </div>
+        </div>
+
+        <!-- Extraction Notice Banner -->
+        <div id="vault-extraction-banner" class="form-state-box info" style="display:none;margin-bottom:1.2rem;border-color:var(--aqua);">
+          <span style="font-size:1.3rem">🔍</span>
+          <div style="flex:1">
+            <div style="font-weight:700;color:var(--aqua)" id="extraction-status-title">Candidate details extracted by AI</div>
+            <div style="font-size:.82rem;color:var(--text);margin-top:.2rem" id="extraction-status-desc">
+              Please review and verify all candidate fields below before saving. Extracted items are marked as unverified until confirmed by you.
+            </div>
           </div>
         </div>
 

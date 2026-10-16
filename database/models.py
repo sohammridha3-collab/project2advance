@@ -17,6 +17,7 @@ class User(Base):
     problems = relationship("RecentProblem", back_populates="user", cascade="all, delete-orphan")
     prescriptions = relationship("Prescription", back_populates="user", cascade="all, delete-orphan")
     allergies = relationship("Allergy", back_populates="user", cascade="all, delete-orphan")
+    briefings = relationship("DoctorBriefing", back_populates="user", cascade="all, delete-orphan")
 
 
 class HealthProfile(Base):
@@ -79,6 +80,8 @@ class RecentProblem(Base):
     problem_category = Column(String(100), nullable=True)
     severity = Column(String(50), nullable=True)
     duration = Column(String(100), nullable=True)
+    status = Column(String(50), default="Active", nullable=False)  # 'Active', 'Resolved', 'Investigating'
+    notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
 
     user = relationship("User", back_populates="problems")
@@ -97,6 +100,7 @@ class Prescription(Base):
     notes = Column(Text, nullable=True)
     file_path = Column(String(255), nullable=True)
     original_filename = Column(String(255), nullable=True)
+    extraction_status = Column(String(50), default="Manual", nullable=False)  # 'Manual', 'OCR_Extracted', 'Verified'
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -126,8 +130,50 @@ class Allergy(Base):
     allergen = Column(String(100), nullable=False, index=True)
     reaction = Column(String(255), nullable=True)
     severity = Column(String(50), nullable=True)
+    verification_status = Column(String(50), default="Self-Reported", nullable=False)  # 'Self-Reported', 'Clinically Verified'
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
 
     user = relationship("User", back_populates="allergies")
+
+
+class DoctorBriefing(Base):
+    __tablename__ = "doctor_briefings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    title = Column(String(200), nullable=False)
+    visit_reason = Column(Text, nullable=False)
+    symptoms_summary = Column(Text, nullable=True)
+    vitals_summary = Column(Text, nullable=True)
+    allergies_summary = Column(Text, nullable=True)
+    medicines_summary = Column(Text, nullable=True)
+    questions_to_ask = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="briefings")
+    shares = relationship("SharedBriefing", back_populates="briefing", cascade="all, delete-orphan")
+
+
+class SharedBriefing(Base):
+    __tablename__ = "shared_briefings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    briefing_id = Column(Integer, ForeignKey("doctor_briefings.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    share_token = Column(String(64), unique=True, index=True, nullable=False)
+    recipient_name = Column(String(150), nullable=True)
+    recipient_role = Column(String(50), default="Physician")
+    access_pin = Column(String(20), nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    is_revoked = Column(Boolean, default=False, nullable=False)
+    view_count = Column(Integer, default=0, nullable=False)
+    last_accessed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    briefing = relationship("DoctorBriefing", back_populates="shares")
+    user = relationship("User")
 
 
 class Medicine(Base):

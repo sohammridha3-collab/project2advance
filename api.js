@@ -256,6 +256,13 @@
           method: "DELETE",
         });
       },
+
+      async update(id, problemData) {
+        return await request(`/problems/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(problemData),
+        });
+      },
     },
 
     prescriptions: {
@@ -269,6 +276,13 @@
 
       async upload(formData) {
         return await request("/api/prescriptions", {
+          method: "POST",
+          body: formData,
+        });
+      },
+
+      async extract(formData) {
+        return await request("/api/prescriptions/extract", {
           method: "POST",
           body: formData,
         });
@@ -317,7 +331,7 @@
       getFileUrl(id) {
         const token = getStoredToken();
         const q = token ? `?token=${encodeURIComponent(token)}` : "";
-        return `${API_BASE}/api/prescriptions/${id}/file${q}`;
+        return `${currentApiBase}/api/prescriptions/${id}/file${q}`;
       },
     },
 
@@ -344,6 +358,58 @@
         return await request(`/allergies/${id}`, {
           method: "DELETE",
         });
+      },
+    },
+
+    timeline: {
+      async list(eventType = "") {
+        const q = eventType ? `?event_type=${encodeURIComponent(eventType)}` : "";
+        return await request(`/api/timeline${q}`);
+      },
+    },
+
+    briefings: {
+      async list() {
+        return await request("/api/briefings");
+      },
+      async get(id) {
+        return await request(`/api/briefings/${id}`);
+      },
+      async draft(visitReason) {
+        const q = `?visit_reason=${encodeURIComponent(visitReason)}`;
+        return await request(`/api/briefings/draft${q}`, { method: "POST" });
+      },
+      async create(data) {
+        return await request("/api/briefings", {
+          method: "POST",
+          body: JSON.stringify(data),
+        });
+      },
+      async update(id, data) {
+        return await request(`/api/briefings/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        });
+      },
+      async delete(id) {
+        return await request(`/api/briefings/${id}`, {
+          method: "DELETE",
+        });
+      },
+      async share(id, shareOptions) {
+        return await request(`/api/briefings/${id}/share`, {
+          method: "POST",
+          body: JSON.stringify(shareOptions || {}),
+        });
+      },
+      async revokeShare(token) {
+        return await request(`/api/briefings/share/${token}`, {
+          method: "DELETE",
+        });
+      },
+      async getShared(token, pin = "") {
+        const q = pin ? `?pin=${encodeURIComponent(pin)}` : "";
+        return await request(`/api/briefings/shared/${token}${q}`);
       },
     },
 

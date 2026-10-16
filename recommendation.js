@@ -377,16 +377,17 @@
         ${medicineSectionHtml}
 
         <div class="glass" style="padding:1rem 1.4rem;border-radius:12px;font-size:.84rem;color:var(--mute);line-height:1.55;display:flex;align-items:center;gap:.7rem;border-color:rgba(94,224,208,.2);margin-top:.8rem">
-          <span style="color:var(--aqua);font-size:1.2rem;flex-shrink:0">🎓</span>
+          <span style="color:var(--aqua);font-size:1.2rem;flex-shrink:0">🛡️</span>
           <div>
-            <strong style="color:var(--text)">Academic Decision-Support Project:</strong> This system is developed solely as an educational and research decision-support tool. It does not provide medical diagnoses, treatment plans, or autonomous prescriptions. Always seek the direct evaluation of a qualified healthcare professional.
+            <strong style="color:var(--text)">HealthBridge AI Decision Support:</strong> This platform organizes personal health records and provides educational clinical context. It does not provide medical diagnoses, treatment plans, or autonomous prescriptions. Always seek direct clinical evaluation from a licensed healthcare provider.
           </div>
         </div>
 
-        <div class="pager noprint" style="margin-top:1.5rem">
+        <div class="pager noprint" style="margin-top:1.5rem;flex-wrap:wrap;gap:.6rem">
           <a class="btn" href="result.html">Back to Result</a>
-          <a class="btn" href="history.html">Health History</a>
-          <a class="btn p" href="prescription.html">Prescription Vault</a>
+          <a class="btn" href="timeline.html">Health Timeline</a>
+          <a class="btn" href="prescription.html">Prescription Vault</a>
+          <a class="btn p" href="briefing.html" style="background:linear-gradient(135deg,rgba(0,212,170,.25),rgba(14,165,233,.25));border:1px solid var(--aqua)">📋 Doctor Briefing</a>
         </div>
       </div>
     `;

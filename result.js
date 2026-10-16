@@ -38,6 +38,6 @@
     <div class="kv" style="margin:.8rem 0"><div>Risk level<b>${esc(level)}</b></div><div>Confidence<b>${conf.toFixed(1)}%</b></div>
       <div>Gender<b>${esc(p.gender)}</b></div><div>Smoker status<b>${esc(p.smoker_status)}</b></div><div>Diabetes history<b>${esc(p.diabetes_history)}</b></div></div>
     <p>This is an AI estimate, not a diagnosis. Review the recommendations next.</p></div>
-  <div class="pager noprint"><a class="btn" href="index.html">Back</a><a class="btn p" href="recommendation.html">Next: Recommendations</a></div>`;
+  <div class="pager noprint" style="flex-wrap:wrap;gap:.6rem"><a class="btn" href="index.html">Back to Form</a><a class="btn" href="timeline.html">Timeline</a><a class="btn" href="briefing.html">Doctor Briefing</a><a class="btn p" href="recommendation.html">Next: Guidance</a></div>`;
   observe(app); countAll(app);
 })();

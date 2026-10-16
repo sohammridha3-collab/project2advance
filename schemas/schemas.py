@@ -171,8 +171,18 @@ class AssessmentSaveRequest(BaseModel):
 class ProblemCreate(BaseModel):
     problem_text: str = Field(..., min_length=2)
     problem_category: Optional[str] = None
+    severity: Optional[str] = "Moderate"
+    duration: Optional[str] = None
+    status: Optional[str] = "Active"
+    notes: Optional[str] = None
+
+class ProblemUpdate(BaseModel):
+    problem_text: Optional[str] = None
+    problem_category: Optional[str] = None
     severity: Optional[str] = None
     duration: Optional[str] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
 
 class ProblemOut(BaseModel):
     id: int
@@ -181,6 +191,8 @@ class ProblemOut(BaseModel):
     problem_category: Optional[str] = None
     severity: Optional[str] = None
     duration: Optional[str] = None
+    status: Optional[str] = "Active"
+    notes: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -191,12 +203,14 @@ class ProblemOut(BaseModel):
 class AllergyCreate(BaseModel):
     allergen: str = Field(..., min_length=2)
     reaction: Optional[str] = None
-    severity: Optional[str] = None
+    severity: Optional[str] = "Moderate"
+    verification_status: Optional[str] = "Self-Reported"
 
 class AllergyUpdate(BaseModel):
     allergen: Optional[str] = None
     reaction: Optional[str] = None
     severity: Optional[str] = None
+    verification_status: Optional[str] = None
 
 class AllergyOut(BaseModel):
     id: int
@@ -204,6 +218,8 @@ class AllergyOut(BaseModel):
     allergen: str
     reaction: Optional[str] = None
     severity: Optional[str] = None
+    verification_status: Optional[str] = "Self-Reported"
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -245,6 +261,7 @@ class PrescriptionCreate(BaseModel):
     notes: Optional[str] = None
     file_path: Optional[str] = None
     original_filename: Optional[str] = None
+    extraction_status: Optional[str] = "Manual"
     medicines: List[PrescriptionMedicineCreate] = []
 
 class PrescriptionUpdate(BaseModel):
@@ -254,6 +271,7 @@ class PrescriptionUpdate(BaseModel):
     prescription_date: Optional[datetime] = None
     diagnosis: Optional[str] = None
     notes: Optional[str] = None
+    extraction_status: Optional[str] = None
 
 class PrescriptionOut(BaseModel):
     id: int
@@ -266,12 +284,105 @@ class PrescriptionOut(BaseModel):
     notes: Optional[str] = None
     file_path: Optional[str] = None
     original_filename: Optional[str] = None
+    extraction_status: Optional[str] = "Manual"
     created_at: datetime
     updated_at: Optional[datetime] = None
     medicines: List[PrescriptionMedicineOut] = []
 
     class Config:
         from_attributes = True
+
+# ==================== Health Timeline ====================
+
+class TimelineEventOut(BaseModel):
+    id: str
+    event_type: str  # 'ASSESSMENT', 'SYMPTOM', 'PRESCRIPTION', 'ALLERGY', 'BRIEFING'
+    title: str
+    description: str
+    event_date: datetime
+    badge: Optional[str] = None
+    severity: Optional[str] = None
+    metadata: Dict[str, Any] = {}
+    source_id: int
+    source_link: str
+
+# ==================== Doctor-Visit Briefings & Secure Sharing ====================
+
+class DoctorBriefingCreate(BaseModel):
+    title: str = Field(..., min_length=2, max_length=200)
+    visit_reason: str = Field(..., min_length=2)
+    symptoms_summary: Optional[str] = None
+    vitals_summary: Optional[str] = None
+    allergies_summary: Optional[str] = None
+    medicines_summary: Optional[str] = None
+    questions_to_ask: Optional[str] = None
+    notes: Optional[str] = None
+
+class DoctorBriefingUpdate(BaseModel):
+    title: Optional[str] = None
+    visit_reason: Optional[str] = None
+    symptoms_summary: Optional[str] = None
+    vitals_summary: Optional[str] = None
+    allergies_summary: Optional[str] = None
+    medicines_summary: Optional[str] = None
+    questions_to_ask: Optional[str] = None
+    notes: Optional[str] = None
+
+class SharedBriefingOut(BaseModel):
+    id: int
+    briefing_id: int
+    share_token: str
+    recipient_name: Optional[str] = None
+    recipient_role: Optional[str] = "Physician"
+    has_pin: bool = False
+    expires_at: datetime
+    is_revoked: bool
+    view_count: int
+    last_accessed_at: Optional[datetime] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class DoctorBriefingOut(BaseModel):
+    id: int
+    user_id: int
+    title: str
+    visit_reason: str
+    symptoms_summary: Optional[str] = None
+    vitals_summary: Optional[str] = None
+    allergies_summary: Optional[str] = None
+    medicines_summary: Optional[str] = None
+    questions_to_ask: Optional[str] = None
+    notes: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    shares: List[SharedBriefingOut] = []
+
+    class Config:
+        from_attributes = True
+
+class ShareBriefingCreate(BaseModel):
+    recipient_name: Optional[str] = "Physician"
+    recipient_role: Optional[str] = "Physician"
+    access_pin: Optional[str] = None
+    duration_hours: int = Field(default=72, ge=1, le=720)  # up to 30 days
+
+class PublicSharedBriefingOut(BaseModel):
+    share_token: str
+    patient_name: str
+    title: str
+    visit_reason: str
+    symptoms_summary: Optional[str] = None
+    vitals_summary: Optional[str] = None
+    allergies_summary: Optional[str] = None
+    medicines_summary: Optional[str] = None
+    questions_to_ask: Optional[str] = None
+    notes: Optional[str] = None
+    recipient_name: Optional[str] = None
+    expires_at: datetime
+    is_expired: bool
+    created_at: datetime
 
 # ==================== Medicines & Interactions ====================
 

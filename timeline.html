@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unified Health Timeline | HealthBridge AI</title>
+  <meta name="description" content="Chronological health continuity feed connecting risk assessments, symptoms, prescriptions, and allergies.">
+  <meta name="theme-color" content="#060c19">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="orb-float a" aria-hidden="true"></div>
+  <div class="orb-float b" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="HealthBridge AI home">
+      <b>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12h4l3-8 4 16 3-8h4" />
+        </svg>
+      </b>
+      <span>HealthBridge AI</span>
+    </a>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span></button>
+    <nav id="menu" class="menu" aria-label="Main">
+      <a href="index.html">Dashboard</a>
+      <a href="timeline.html" aria-current="page" class="active">Timeline</a>
+      <a href="briefing.html">Doctor Briefing</a>
+      <a href="prescription.html">Prescription Vault</a>
+      <a href="recommendation.html">Recommendations</a>
+      <a href="history.html">Assessments</a>
+      <a href="allergies.html">Allergies</a>
+      <a href="problems.html">Symptom Log</a>
+    </nav>
+  </header>
+
+  <main id="main" class="container">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+      <div>
+        <h1 class="ptitle" style="margin:0 0 .3rem">Unified Health Timeline</h1>
+        <p class="psub" style="margin:0">Chronological continuity feed connecting your assessments, symptoms, prescription records, and allergies.</p>
+      </div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <a href="index.html#analysis" class="btn btn-sm p">+ Run Assessment</a>
+        <a href="briefing.html" class="btn btn-sm">📋 Prepare Doctor Briefing</a>
+      </div>
+    </div>
+
+    <!-- Timeline Category Filter Bar -->
+    <div class="timeline-filter-bar" role="tablist" aria-label="Timeline event filters">
+      <button class="timeline-filter-btn active" data-filter="ALL" type="button">All Events (<span id="count-all">0</span>)</button>
+      <button class="timeline-filter-btn" data-filter="ASSESSMENT" type="button">🩺 Assessments (<span id="count-assessment">0</span>)</button>
+      <button class="timeline-filter-btn" data-filter="SYMPTOM" type="button">📝 Symptoms (<span id="count-symptom">0</span>)</button>
+      <button class="timeline-filter-btn" data-filter="PRESCRIPTION" type="button">💊 Prescriptions (<span id="count-prescription">0</span>)</button>
+      <button class="timeline-filter-btn" data-filter="ALLERGY" type="button">🛡️ Allergies (<span id="count-allergy">0</span>)</button>
+      <button class="timeline-filter-btn" data-filter="BRIEFING" type="button">📋 Briefings (<span id="count-briefing">0</span>)</button>
+    </div>
+
+    <!-- Timeline Event Stream -->
+    <div id="timeline-container">
+      <div style="text-align:center;padding:3rem 1rem">
+        <p style="color:var(--text-muted)">Loading your chronological health timeline...</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site">HealthBridge AI &copy; 2026 &bull; Personal Health Continuity Platform &bull; Clinical information is for health organization and doctor collaboration.</footer>
+  <script src="api.js" defer></script>
+  <script src="common.js" defer></script>
+  <script src="timeline.js" defer></script>
+</body>
+
+</html>

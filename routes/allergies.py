@@ -28,9 +28,10 @@ def add_user_allergy(
     """Registers a known drug or environmental allergy for the authenticated user."""
     new_allergy = Allergy(
         user_id=user.id,
-        allergen=allergy_in.allergen,
-        reaction=allergy_in.reaction,
-        severity=allergy_in.severity
+        allergen=allergy_in.allergen.strip(),
+        reaction=allergy_in.reaction.strip() if allergy_in.reaction else None,
+        severity=allergy_in.severity.strip() if allergy_in.severity else "Moderate",
+        verification_status=allergy_in.verification_status.strip() if allergy_in.verification_status else "Self-Reported"
     )
     db.add(new_allergy)
     db.commit()
@@ -70,6 +71,9 @@ def update_user_allergy(
 
     if allergy_in.severity is not None:
         allergy.severity = allergy_in.severity.strip() if allergy_in.severity else None
+
+    if allergy_in.verification_status is not None:
+        allergy.verification_status = allergy_in.verification_status.strip()
 
     db.commit()
     db.refresh(allergy)

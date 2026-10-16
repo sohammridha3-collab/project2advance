@@ -7,7 +7,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from fastapi import (
-    APIRouter, Depends, HTTPException, status, Request
+    APIRouter, Depends, HTTPException, status, Request, UploadFile, File
 )
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -23,6 +23,7 @@ from schemas.schemas import (
 from database.database import get_db
 from database.models import Prescription, PrescriptionMedicine, User
 from services.auth_handler import get_current_user, get_optional_current_user
+from services.document_extractor import extract_candidate_prescription_fields
 
 router = APIRouter(prefix="/prescriptions", tags=["prescriptions"])
 
@@ -84,6 +85,7 @@ async def _process_prescription_creation(
     diagnosis: Optional[str] = None
     notes: Optional[str] = None
     medicines_to_add: List[dict] = []
+    extraction_status_val: Optional[str] = None
 
     if "multipart/form-data" in content_type:
         form = await request.form()
@@ -131,6 +133,7 @@ async def _process_prescription_creation(
         prescription_date_str = form.get("prescription_date")
         diagnosis = form.get("diagnosis")
         notes = form.get("notes")
+        extraction_status_val = form.get("extraction_status")
 
         raw_meds = form.get("medicines")
         if raw_meds:
@@ -157,6 +160,7 @@ async def _process_prescription_creation(
         saved_rel_path = body.get("file_path")
         orig_filename = body.get("original_filename")
         medicines_to_add = body.get("medicines", [])
+        extraction_status_val = body.get("extraction_status")
 
     # Parse date
     dt_val: Optional[datetime] = None
@@ -181,7 +185,8 @@ async def _process_prescription_creation(
         diagnosis=str(diagnosis).strip() if diagnosis else None,
         notes=str(notes).strip() if notes else None,
         file_path=saved_rel_path,
-        original_filename=orig_filename
+        original_filename=orig_filename,
+        extraction_status=str(extraction_status_val or ("OCR_Extracted" if saved_rel_path else "Manual"))
     )
     db.add(new_prescription)
     db.commit()
@@ -226,6 +231,43 @@ async def upload_prescription_alias(
 ):
     """Compatibility alias for multipart prescription uploads."""
     return await _process_prescription_creation(request, db, user)
+
+
+@router.post("/extract")
+async def extract_prescription_fields_endpoint(
+    request: Request,
+    user: User = Depends(get_current_user)
+):
+    """
+    Analyzes an uploaded prescription file and extracts candidate fields
+    (Doctor, Date, Medicines, Dosages) for patient review before saving.
+    """
+    content_type = request.headers.get("content-type", "").lower()
+    if "multipart/form-data" not in content_type:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Expected multipart/form-data with file.")
+
+    form = await request.form()
+    upload = form.get("file")
+    if not upload or not hasattr(upload, "filename"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No prescription file uploaded.")
+
+    filename = sanitize_filename(upload.filename)
+    suffix = Path(filename).suffix.lower()
+    if suffix not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"File extension {suffix} is not allowed.")
+
+    file_bytes = await upload.read()
+    if len(file_bytes) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="File exceeds 10MB limit.")
+
+    unique_name = f"{uuid.uuid4().hex[:12]}_{filename}"
+    disk_path = UPLOAD_DIR / unique_name
+    disk_path.write_bytes(file_bytes)
+
+    extracted = extract_candidate_prescription_fields(disk_path, filename)
+    extracted["staged_file_path"] = f"uploads/prescriptions/{unique_name}"
+    extracted["original_filename"] = filename
+    return extracted
 
 
 # ============================================================
@@ -529,3 +571,48 @@ def download_prescription_file(
         media_type=media_type,
         filename=filename
     )
+
+
+# ============================================================
+# 8. PRESCRIPTION DOCUMENT INTELLIGENCE / EXTRACTION
+# ============================================================
+@router.post("/extract")
+async def extract_prescription_fields(
+    request: Request,
+    user: User = Depends(get_current_user)
+):
+    """
+    Analyzes an uploaded prescription file to extract candidate fields
+    (prescribing doctor, clinic, date, medicines, and candidate dosages).
+    Extracted fields are labeled as 'unverified' and must be confirmed by the patient.
+    """
+    import tempfile
+    form = await request.form()
+    file_obj = form.get("file")
+    if not file_obj or not hasattr(file_obj, "filename"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Prescription document file is required for extraction."
+        )
+
+    # Save to a temporary file for analysis
+    suffix = Path(file_obj.filename).suffix.lower()
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        content = await file_obj.read()
+        tmp.write(content)
+        tmp_path = Path(tmp.name)
+
+    try:
+        extracted = extract_candidate_prescription_fields(tmp_path, file_obj.filename)
+    finally:
+        try:
+            tmp_path.unlink()
+        except Exception:
+            pass
+
+    return {
+        "status": "extracted",
+        "extracted_data": extracted,
+        "notice": "Candidate details extracted by AI. Please review and verify all dosages and medicines before saving."
+    }
+

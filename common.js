@@ -45,18 +45,26 @@
     const menu = document.getElementById("menu");
     if (!menu) return;
 
-    // Standard clinical application pages
+    // Standard clinical application pages for HealthBridge AI
     const links = [
       { href: "index.html", text: "Dashboard" },
-      { href: "history.html", text: "Health History" },
+      { href: "timeline.html", text: "Timeline" },
+      { href: "briefing.html", text: "Doctor Briefing" },
       { href: "prescription.html", text: "Prescription Vault" },
+      { href: "recommendation.html", text: "Recommendations" },
+      { href: "history.html", text: "Assessments" },
       { href: "allergies.html", text: "Allergies" },
-      { href: "problems.html", text: "Symptom Log" },
-      { href: "recommendation.html", text: "Recommendations" }
+      { href: "problems.html", text: "Symptom Log" }
     ];
 
     if (currentPath === "result.html") {
-      links.splice(5, 0, { href: "result.html", text: "Assessment Result" });
+      links.splice(1, 0, { href: "result.html", text: "Current Result" });
+    }
+
+    // Set brand name to HealthBridge AI across all pages
+    const brandSpan = document.querySelector(".brand span");
+    if (brandSpan) {
+      brandSpan.textContent = "HealthBridge AI";
     }
 
     // Rebuild menu links while preserving current highlight

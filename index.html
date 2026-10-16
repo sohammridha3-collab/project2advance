@@ -4,9 +4,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard | AI Health Risk Prediction</title>
+  <title>Dashboard | HealthBridge AI — Personal Health Continuity Platform</title>
   <meta name="description"
-    content="AI health risk prediction, clinical analytics dashboard, vital indicators, and medical recommendations.">
+    content="HealthBridge AI — Personal Health Continuity Platform connecting health assessments, symptom records, prescription documents, allergies, and clinical visit briefings.">
   <meta name="theme-color" content="#060c19">
   <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -19,24 +19,26 @@
   <div class="orb-float b" aria-hidden="true"></div>
 
   <header class="topbar">
-    <a class="brand" href="index.html" aria-label="AI Health Risk Dashboard home">
+    <a class="brand" href="index.html" aria-label="HealthBridge AI Dashboard home">
       <b>
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
           stroke-linejoin="round" aria-hidden="true">
           <path d="M3 12h4l3-8 4 16 3-8h4" />
         </svg>
       </b>
-      <span>AI Health Risk</span>
+      <span>HealthBridge AI</span>
     </a>
     <button class="burger" type="button" aria-expanded="false" aria-controls="menu"
       aria-label="Open menu"><span></span></button>
     <nav id="menu" class="menu" aria-label="Main">
       <a href="index.html" aria-current="page" class="active">Dashboard</a>
-      <a href="history.html">Health History</a>
+      <a href="timeline.html">Timeline</a>
+      <a href="briefing.html">Doctor Briefing</a>
       <a href="prescription.html">Prescription Vault</a>
-      <a href="allergies.html">Allergies</a>
-      <a href="result.html">Result</a>
       <a href="recommendation.html">Recommendations</a>
+      <a href="history.html">Assessments</a>
+      <a href="allergies.html">Allergies</a>
+      <a href="problems.html">Symptom Log</a>
     </nav>
   </header>
 
@@ -133,7 +135,27 @@
         <p>Access your medical documents, allergy sensitivities, symptoms, and clinical advice.</p>
       </div>
 
-      <div class="quick-hub-grid">
+      <div class="quick-hub-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+        <a href="timeline.html" class="quick-hub-card glass tilt">
+          <div class="quick-hub-icon-row">
+            <span class="quick-hub-icon">⏳</span>
+            <span class="quick-hub-stat-pill" id="hub-timeline-count">Health Timeline</span>
+          </div>
+          <h3>Unified Health Timeline</h3>
+          <p>Chronological feed connecting your assessments, symptoms, prescriptions, and allergies.</p>
+          <span class="quick-hub-link">Open Health Timeline &rarr;</span>
+        </a>
+
+        <a href="briefing.html" class="quick-hub-card glass tilt">
+          <div class="quick-hub-icon-row">
+            <span class="quick-hub-icon">🩺</span>
+            <span class="quick-hub-stat-pill">Doctor Briefing</span>
+          </div>
+          <h3>Doctor-Visit Briefing</h3>
+          <p>Generate, review, and export physician-ready appointment summaries and discussion points.</p>
+          <span class="quick-hub-link">Prepare Doctor Briefing &rarr;</span>
+        </a>
+
         <a href="prescription.html" class="quick-hub-card glass tilt">
           <div class="quick-hub-icon-row">
             <span class="quick-hub-icon">💊</span>
@@ -166,7 +188,7 @@
 
         <a href="problems.html" class="quick-hub-card glass tilt">
           <div class="quick-hub-icon-row">
-            <span class="quick-hub-icon">🩺</span>
+            <span class="quick-hub-icon">📝</span>
             <span class="quick-hub-stat-pill" id="hub-problem-count">Symptom Log</span>
           </div>
           <h3>Health Complaints</h3>

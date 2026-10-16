@@ -17,7 +17,7 @@ from services.auth_handler import get_optional_current_user
 from schemas.schemas import HeartRiskInput, PredictionResponse
 
 # Import all route modules
-from routes import auth, prediction, problems, prescriptions, recommendations, medicines, allergies, users
+from routes import auth, prediction, problems, prescriptions, recommendations, medicines, allergies, users, timeline, briefings
 
 load_dotenv()
 
@@ -62,8 +62,8 @@ async def lifespan(app: FastAPI):
 # FASTAPI APPLICATION DEFINITION
 # ============================================================
 app = FastAPI(
-    title="AI-Based Health Risk Prediction System",
-    description="Full-stack AI health risk prediction, personalized recommendations, and clinical medicine safety API.",
+    title="HealthBridge AI",
+    description="Personal Health Continuity Platform connecting health assessments, symptom records, prescription documents, allergies, and clinical visit briefings.",
     version="2.0.0",
     lifespan=lifespan
 )
@@ -137,6 +137,12 @@ app.include_router(allergies.router, prefix="/api")
 
 app.include_router(users.router)
 app.include_router(users.router, prefix="/api")
+
+app.include_router(timeline.router)
+app.include_router(timeline.router, prefix="/api")
+
+app.include_router(briefings.router)
+app.include_router(briefings.router, prefix="/api")
 
 # ============================================================
 # SYSTEM HEALTH & ROOT ENDPOINTS
