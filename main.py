@@ -12,8 +12,10 @@ from dotenv import load_dotenv
 
 from database.database import init_db, engine, get_db
 from database.models import User
-from services.prediction_service import load_model, get_model
 from services.auth_handler import get_optional_current_user
+from services.prediction_service import (
+    load_model, get_model, start_background_model_loading, is_model_ready
+)
 from schemas.schemas import HeartRiskInput, PredictionResponse
 
 # Import all route modules
@@ -47,12 +49,12 @@ async def lifespan(app: FastAPI):
     except Exception as db_err:
         logger.error(f"[Database] Database initialization error: {db_err}")
 
-    # 2. Load ML Model ONCE into memory at startup
+    # 2. Start ML Model background loading so server opens port 8000 instantly
     try:
-        load_model()
-        logger.info("[ML Model] heart_risk_model.pkl loaded ONCE into memory at startup.")
+        start_background_model_loading()
+        logger.info("[ML Model] Model background initialization started. Port 8000 ready immediately.")
     except Exception as ml_err:
-        logger.error(f"[ML Model] CRITICAL: Failed to load heart_risk_model.pkl: {ml_err}")
+        logger.error(f"[ML Model] CRITICAL: Failed to start model loading: {ml_err}")
 
     yield
 
@@ -163,7 +165,7 @@ def api_status():
 
 @app.get("/health", tags=["system"])
 def health_check():
-    model_loaded = get_model() is not None
+    model_loaded = is_model_ready()
     db_connected = False
     try:
         with engine.connect() as conn:
@@ -172,7 +174,7 @@ def health_check():
         db_connected = False
 
     return {
-        "status": "healthy" if (model_loaded and db_connected) else "degraded",
+        "status": "healthy" if (model_loaded and db_connected) else ("loading" if db_connected else "degraded"),
         "database_connected": db_connected,
         "model_loaded": model_loaded
     }

@@ -1,4 +1,5 @@
 import os
+import threading
 from pathlib import Path
 from typing import Dict, Any, Optional
 import joblib
@@ -9,28 +10,67 @@ from schemas.schemas import HeartRiskInput
 
 # Global model reference loaded ONCE at application startup
 _model = None
+_model_lock = threading.Lock()
+_model_ready_event = threading.Event()
+_loading_thread = None
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_MODEL_PATH = BASE_DIR / "heart_risk_model.pkl"
 
-def load_model(model_path: Optional[Path] = None) -> Any:
-    """Loads heart_risk_model.pkl into memory once at application startup."""
+def _load_model_worker(model_path: Optional[Path] = None):
     global _model
     path = model_path or DEFAULT_MODEL_PATH
     if not path.exists():
+        _model_ready_event.set()
         raise FileNotFoundError(f"Model file not found at {path}")
 
     try:
-        _model = joblib.load(path)
+        loaded = joblib.load(path)
+        with _model_lock:
+            _model = loaded
         print(f"[ML Engine] Heart risk model loaded successfully from {path}")
-        return _model
     except Exception as e:
         print(f"[ML Engine] ERROR loading model from {path}: {e}")
         raise e
+    finally:
+        _model_ready_event.set()
+
+def start_background_model_loading(model_path: Optional[Path] = None):
+    """Starts loading the ML model in a background daemon thread so server starts immediately."""
+    global _loading_thread, _model
+    if _model is not None:
+        return
+    with _model_lock:
+        if _loading_thread is None or not _loading_thread.is_alive():
+            _model_ready_event.clear()
+            _loading_thread = threading.Thread(
+                target=_load_model_worker,
+                args=(model_path,),
+                daemon=True,
+                name="MLModelLoader"
+            )
+            _loading_thread.start()
+
+def load_model(model_path: Optional[Path] = None) -> Any:
+    """Loads heart_risk_model.pkl into memory once at application startup."""
+    global _model
+    with _model_lock:
+        if _model is not None:
+            return _model
+    _load_model_worker(model_path)
+    return _model
+
+def is_model_ready() -> bool:
+    """Check if ML model has completed loading into memory."""
+    return _model is not None
 
 def get_model() -> Any:
-    """Returns the loaded model instance or loads it if not already initialized."""
+    """Returns the loaded model instance or waits for it if background loading is in progress."""
     global _model
+    if _model is not None:
+        return _model
+    if _loading_thread is not None and _loading_thread.is_alive():
+        _model_ready_event.wait(timeout=60)
     if _model is None:
         return load_model()
     return _model

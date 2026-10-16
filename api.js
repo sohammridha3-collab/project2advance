@@ -14,6 +14,33 @@
     return "http://127.0.0.1:8000";
   };
   let currentApiBase = getApiBase();
+  let isServerOnline = true;
+  let pollIntervalId = null;
+
+  function startAutoHealthPolling() {
+    if (pollIntervalId) return;
+    pollIntervalId = setInterval(async () => {
+      try {
+        const candidates = Array.from(new Set([currentApiBase, "http://127.0.0.1:8000", "http://localhost:8000"]));
+        for (const base of candidates) {
+          const ctrl = new AbortController();
+          const tid = setTimeout(() => ctrl.abort(), 1800);
+          const res = await fetch(`${base}/health`, { signal: ctrl.signal }).catch(() => null);
+          clearTimeout(tid);
+          if (res && res.ok) {
+            clearInterval(pollIntervalId);
+            pollIntervalId = null;
+            currentApiBase = base;
+            isServerOnline = true;
+            const data = await res.json().catch(() => ({}));
+            window.dispatchEvent(new CustomEvent("hr:backend_online", { detail: { base, data } }));
+            break;
+          }
+        }
+      } catch {}
+    }, 2500);
+  }
+
   const TOKEN_KEY = "hr_auth_token";
   const USER_KEY = "hr_current_user";
 
@@ -60,6 +87,10 @@
     let response;
     try {
       response = await fetch(url, config);
+      if (!isServerOnline) {
+        isServerOnline = true;
+        window.dispatchEvent(new CustomEvent("hr:backend_online", { detail: { base: currentApiBase } }));
+      }
     } catch (networkError) {
       // Intelligently try alternate loopback (127.0.0.1 <-> localhost) in case Windows mapped only one
       if (!endpoint.startsWith("http")) {
@@ -67,12 +98,19 @@
         try {
           response = await fetch(`${altBase}${endpoint}`, config);
           currentApiBase = altBase; // Alternate succeeded, persist as current
+          if (!isServerOnline) {
+            isServerOnline = true;
+            window.dispatchEvent(new CustomEvent("hr:backend_online", { detail: { base: currentApiBase } }));
+          }
         } catch (secondErr) {
           // Both failed
         }
       }
 
       if (!response) {
+        isServerOnline = false;
+        window.dispatchEvent(new CustomEvent("hr:backend_offline", { detail: { base: currentApiBase } }));
+        startAutoHealthPolling();
         const err = new Error(`Cannot connect to backend server at ${currentApiBase}. Please ensure FastAPI is running.`);
         err.network = true;
         err.apiBase = currentApiBase;
@@ -140,14 +178,26 @@
           if (res.ok) {
             currentApiBase = base;
             const data = await res.json().catch(() => ({}));
-            return { online: true, base, data };
+            const wasOffline = !isServerOnline;
+            isServerOnline = true;
+            if (wasOffline) {
+              window.dispatchEvent(new CustomEvent("hr:backend_online", { detail: { base, data } }));
+            }
+            return { online: true, base, data, model_loaded: !!data.model_loaded };
           }
         } catch {
           // Probe next candidate
         }
       }
 
+      isServerOnline = false;
+      window.dispatchEvent(new CustomEvent("hr:backend_offline", { detail: { base: currentApiBase } }));
+      startAutoHealthPolling();
       return { online: false, base: currentApiBase };
+    },
+
+    isOnline() {
+      return isServerOnline;
     },
 
     auth: {

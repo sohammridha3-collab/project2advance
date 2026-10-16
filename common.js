@@ -308,13 +308,210 @@
     }
   }
 
+  // ============================================================
+  // BACKEND CONNECTION HEALTH & AUTO-HEALING UI
+  // ============================================================
+  let statusBanner = null;
+  let offlineGuideModal = null;
+
+  function showBackendStatusBanner(isOnline, detail = {}) {
+    if (!statusBanner) {
+      statusBanner = document.createElement("div");
+      statusBanner.id = "hr-backend-status-banner";
+      statusBanner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100000;
+        padding: 0.55rem 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.88rem;
+        font-family: inherit;
+        font-weight: 500;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+        backdrop-filter: blur(12px);
+        transition: all 0.3s ease;
+        transform: translateY(0);
+      `;
+      document.body.prepend(statusBanner);
+    }
+
+    if (isOnline) {
+      statusBanner.style.background = "linear-gradient(90deg, #065f46, #047857)";
+      statusBanner.style.borderBottom = "1px solid #10b981";
+      statusBanner.style.color = "#ecfdf5";
+      statusBanner.innerHTML = `
+        <div style="display:flex;align-items:center;gap:0.6rem">
+          <span style="font-size:1.1rem">✓</span>
+          <span><strong>FastAPI Connected:</strong> Backend server is online at <code>${detail.base || "http://127.0.0.1:8000"}</code></span>
+        </div>
+        <button type="button" id="dismiss-status-banner-btn" style="background:transparent;border:none;color:#ecfdf5;cursor:pointer;font-size:1.1rem;padding:0 0.3rem" title="Dismiss">✕</button>
+      `;
+      const dismissBtn = document.getElementById("dismiss-status-banner-btn");
+      if (dismissBtn) {
+        dismissBtn.addEventListener("click", () => {
+          statusBanner.style.display = "none";
+        });
+      }
+      setTimeout(() => {
+        if (statusBanner && statusBanner.style.display !== "none") {
+          statusBanner.style.opacity = "0";
+          statusBanner.style.transform = "translateY(-100%)";
+          setTimeout(() => {
+            if (statusBanner) statusBanner.style.display = "none";
+          }, 300);
+        }
+      }, 3500);
+    } else {
+      statusBanner.style.display = "flex";
+      statusBanner.style.opacity = "1";
+      statusBanner.style.transform = "translateY(0)";
+      statusBanner.style.background = "linear-gradient(90deg, #991b1b, #b91c1c)";
+      statusBanner.style.borderBottom = "1px solid #ef4444";
+      statusBanner.style.color = "#fef2f2";
+      statusBanner.innerHTML = `
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap">
+          <span style="font-size:1.1rem">⚠️</span>
+          <span><strong>Backend Offline:</strong> Cannot connect to FastAPI on <code>127.0.0.1:8000</code>. Retrying automatically...</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <button type="button" id="retry-backend-btn" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;padding:0.25rem 0.65rem;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600">⚡ Check Now</button>
+          <button type="button" id="help-backend-btn" style="background:#fff;border:none;color:#991b1b;padding:0.25rem 0.65rem;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600">🛠️ How to Start</button>
+        </div>
+      `;
+
+      const retryBtn = document.getElementById("retry-backend-btn");
+      if (retryBtn) {
+        retryBtn.addEventListener("click", async () => {
+          retryBtn.textContent = "Checking...";
+          const h = await window.HR_API.checkHealth();
+          if (h.online) {
+            showToast("Backend reconnected successfully!", "success");
+          } else {
+            retryBtn.textContent = "Offline (Retrying...)";
+            setTimeout(() => { retryBtn.textContent = "⚡ Check Now"; }, 2000);
+          }
+        });
+      }
+
+      const helpBtn = document.getElementById("help-backend-btn");
+      if (helpBtn) {
+        helpBtn.addEventListener("click", openBackendHelpModal);
+      }
+    }
+  }
+
+  function openBackendHelpModal() {
+    if (offlineGuideModal) offlineGuideModal.remove();
+
+    offlineGuideModal = document.createElement("div");
+    offlineGuideModal.className = "modal-overlay";
+    offlineGuideModal.innerHTML = `
+      <div class="glass modal-card" role="dialog" aria-modal="true" style="max-width:560px;padding:1.8rem;text-align:left">
+        <button class="modal-close" id="close-backend-modal" type="button" aria-label="Close dialog">&times;</button>
+        <h2 style="margin:0 0 0.5rem 0;font-size:1.35rem;display:flex;align-items:center;gap:0.5rem">
+          <span>🛠️</span> FastAPI Backend Server Offline
+        </h2>
+        <p style="color:var(--mute);font-size:0.9rem;line-height:1.5;margin-bottom:1.2rem">
+          The web application requires the Python FastAPI backend running on <code>http://127.0.0.1:8000</code> to process predictions, medical records, and database storage.
+        </p>
+
+        <div style="background:rgba(255,255,255,0.04);border:1px solid var(--edge);border-radius:10px;padding:1rem;margin-bottom:1rem">
+          <strong style="color:var(--primary,#4f46e5);display:block;margin-bottom:0.4rem;font-size:0.92rem">
+            Option 1: 1-Click Launch (Recommended)
+          </strong>
+          <p style="font-size:0.86rem;color:var(--text);margin:0 0 0.5rem 0">
+            In your project folder, double-click:
+          </p>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <code style="background:rgba(0,0,0,0.4);padding:0.4rem 0.8rem;border-radius:6px;font-weight:600;color:#60a5fa">run_app.bat</code>
+            <span style="font-size:0.82rem;color:var(--mute)">or</span>
+            <code style="background:rgba(0,0,0,0.4);padding:0.4rem 0.8rem;border-radius:6px;font-weight:600;color:#60a5fa">run_backend.bat</code>
+          </div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.04);border:1px solid var(--edge);border-radius:10px;padding:1rem;margin-bottom:1.2rem">
+          <strong style="color:var(--primary,#4f46e5);display:block;margin-bottom:0.4rem;font-size:0.92rem">
+            Option 2: Terminal Command
+          </strong>
+          <p style="font-size:0.86rem;color:var(--text);margin:0 0 0.5rem 0">
+            Open PowerShell or CMD in the project folder and run:
+          </p>
+          <code style="display:block;background:rgba(0,0,0,0.4);padding:0.5rem 0.8rem;border-radius:6px;font-weight:600;color:#34d399">
+            python -m uvicorn main:app --host 127.0.0.1 --port 8000
+          </code>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:0.8rem">
+          <button id="test-connection-btn" class="btn p" type="button" style="padding:0.6rem 1.2rem">
+            ⚡ Test Connection Now
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(offlineGuideModal);
+
+    document.getElementById("close-backend-modal").addEventListener("click", () => {
+      offlineGuideModal.remove();
+      offlineGuideModal = null;
+    });
+
+    offlineGuideModal.addEventListener("click", (e) => {
+      if (e.target === offlineGuideModal) {
+        offlineGuideModal.remove();
+        offlineGuideModal = null;
+      }
+    });
+
+    document.getElementById("test-connection-btn").addEventListener("click", async () => {
+      const btn = document.getElementById("test-connection-btn");
+      btn.textContent = "Testing...";
+      const health = await window.HR_API.checkHealth();
+      if (health.online) {
+        showToast("Backend is online! Closing...", "success");
+        setTimeout(() => {
+          if (offlineGuideModal) {
+            offlineGuideModal.remove();
+            offlineGuideModal = null;
+          }
+        }, 1000);
+      } else {
+        btn.textContent = "Still Offline (Check Terminal)";
+        setTimeout(() => { btn.textContent = "⚡ Test Connection Now"; }, 2500);
+      }
+    });
+  }
+
+  window.addEventListener("hr:backend_offline", (e) => {
+    showBackendStatusBanner(false, e.detail);
+  });
+
+  window.addEventListener("hr:backend_online", (e) => {
+    showBackendStatusBanner(true, e.detail);
+  });
+
   window.HR_UI = {
     showToast,
     openAuthModal,
     ensureAuth,
     setupNavigation,
     renderAuthWidget,
+    showBackendStatusBanner,
+    openBackendHelpModal,
   };
 
-  document.addEventListener("DOMContentLoaded", initAuth);
+  document.addEventListener("DOMContentLoaded", () => {
+    initAuth();
+    if (window.HR_API && window.HR_API.checkHealth) {
+      window.HR_API.checkHealth().then(h => {
+        if (!h.online) {
+          showBackendStatusBanner(false, h);
+        }
+      });
+    }
+  });
 })();
