@@ -10,4 +10,4 @@ echo Starting FastAPI in background...
 wscript "%~dp0start_backend_silent.vbs"
 
 echo Backend restarted.
-timeout /t 2 >nul
+ping -n 3 127.0.0.1 >nul

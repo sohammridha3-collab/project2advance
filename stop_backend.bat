@@ -4,16 +4,18 @@ cd /d "%~dp0"
 
 echo Stopping any running FastAPI / Uvicorn server on port 8000...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$conns = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue; " ^
-  "if ($conns) { " ^
-  "  $pids = $conns | Select-Object -ExpandProperty OwningProcess -Unique; " ^
+  "$lines = netstat -ano | Select-String ':8000' | Select-String 'LISTENING'; " ^
+  "if ($lines) { " ^
+  "  $pids = $lines | ForEach-Object { ($_ -split '\s+')[-1] } | Select-Object -Unique; " ^
   "  foreach ($p in $pids) { " ^
-  "    Stop-Process -Id $p -Force -ErrorAction SilentlyContinue; " ^
-  "    Write-Host \"[KILLED] Stopped process PID $p on port 8000\"; " ^
+  "    if ($p -match '^\d+$' -and $p -ne '0') { " ^
+  "      Stop-Process -Id $p -Force -ErrorAction SilentlyContinue; " ^
+  "      Write-Host \"[KILLED] Stopped process PID $p on port 8000\"; " ^
+  "    } " ^
   "  } " ^
   "} else { " ^
   "  Write-Host '[INFO] No process is currently listening on port 8000.'; " ^
   "}"
 
 echo Done.
-timeout /t 2 >nul
+ping -n 2 127.0.0.1 >nul

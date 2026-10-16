@@ -190,4 +190,5 @@ python -u test_healthbridge_e2e.py
 > - The platform does not prescribe, dose, restart, or discontinue medications.
 > - In case of acute or life-threatening symptoms (e.g. crushing chest pain, acute shortness of breath), patients must immediately contact emergency medical services.
 #   p r o j e c t 2 a d v a n c e  
+ #   p r o j e c t 2 . 0 a d v a n c e  
  
