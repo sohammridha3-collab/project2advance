@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign In & Register | AI Health Risk Prediction</title>
+  <meta name="description" content="Sign in or register to access the AI Health Risk prediction system.">
+  <meta name="theme-color" content="#060c19">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .auth-container {
+      max-width: 540px;
+      margin: 2rem auto;
+    }
+    .db-viewer-card {
+      max-width: 820px;
+      margin: 2.5rem auto 3rem;
+    }
+    .user-table-wrap {
+      overflow-x: auto;
+      margin-top: 1rem;
+      border-radius: 14px;
+      border: 1px solid var(--edge);
+    }
+    .user-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: .88rem;
+    }
+    .user-table th {
+      background: rgba(14, 28, 58, 0.85);
+      color: var(--mute);
+      padding: .8rem 1rem;
+      font-weight: 600;
+      border-bottom: 1px solid var(--edge);
+      text-transform: uppercase;
+      font-size: .75rem;
+      letter-spacing: .06em;
+    }
+    .user-table td {
+      padding: .85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+    .user-table tr:hover td {
+      background: rgba(94, 224, 208, 0.04);
+    }
+    .user-table tr.new-user-row td {
+      background: rgba(95, 227, 176, 0.12);
+    }
+    .db-location-box {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .65rem .95rem;
+      border-radius: 10px;
+      background: rgba(8, 16, 34, 0.8);
+      border: 1px solid var(--edge);
+      font-family: monospace;
+      font-size: .82rem;
+      color: var(--aqua);
+      margin: .8rem 0 1rem;
+      word-break: break-all;
+    }
+  </style>
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="orb-float a" aria-hidden="true"></div>
+  <div class="orb-float b" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="login.html" aria-label="AI Health Risk home">
+      <b>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12h4l3-8 4 16 3-8h4" />
+        </svg>
+      </b>
+      <span>AI Health Risk</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:.6rem;margin-left:auto">
+      <span class="pill-chip" style="color:var(--aqua);border-color:rgba(94,224,208,.3)">
+        🔒 Secure Authentication Portal
+      </span>
+    </div>
+  </header>
+
+  <main id="main" class="container">
+    <div class="auth-container">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <h1 class="ptitle" style="margin-bottom:.3rem">Patient Health Portal</h1>
+        <p class="psub">Sign in or create a clinical account before entering the health risk dashboard.</p>
+      </div>
+
+      <div class="glass tilt" style="padding:2rem">
+        <div class="auth-tabs" style="margin-top:0">
+          <button class="auth-tab active" id="tab-login-btn" type="button">Sign In</button>
+          <button class="auth-tab" id="tab-register-btn" type="button">Create Account / Register</button>
+        </div>
+
+        <form id="portal-auth-form" novalidate>
+          <div id="register-fields" style="display:none;margin-bottom:1.1rem">
+            <label for="input-name" style="font-size:.85rem;color:var(--mute);font-weight:600;display:block;margin-bottom:.4rem">Full Name *</label>
+            <input type="text" id="input-name" placeholder="e.g. John Doe, Sarah Miller" style="font:500 1rem 'Manrope',sans-serif;color:var(--text);min-height:46px;padding:0 .9rem;border-radius:12px;border:1px solid var(--edge);background:rgba(8,16,34,.7);width:100%;box-sizing:border-box">
+          </div>
+
+          <div style="margin-bottom:1.1rem">
+            <label for="input-email" style="font-size:.85rem;color:var(--mute);font-weight:600;display:block;margin-bottom:.4rem">Email Address *</label>
+            <input type="email" id="input-email" required placeholder="name@example.com" style="font:500 1rem 'Manrope',sans-serif;color:var(--text);min-height:46px;padding:0 .9rem;border-radius:12px;border:1px solid var(--edge);background:rgba(8,16,34,.7);width:100%;box-sizing:border-box">
+          </div>
+
+          <div style="margin-bottom:1.2rem">
+            <label for="input-password" style="font-size:.85rem;color:var(--mute);font-weight:600;display:block;margin-bottom:.4rem">Password * (minimum 6 characters)</label>
+            <input type="password" id="input-password" required minlength="6" placeholder="••••••••" style="font:500 1rem 'Manrope',sans-serif;color:var(--text);min-height:46px;padding:0 .9rem;border-radius:12px;border:1px solid var(--edge);background:rgba(8,16,34,.7);width:100%;box-sizing:border-box">
+          </div>
+
+          <div id="auth-status-box" style="display:none" class="form-state-box"></div>
+
+          <button id="auth-main-btn" class="btn p" type="submit" style="width:100%;margin-top:.4rem">Sign In to Dashboard &rarr;</button>
+        </form>
+
+        <div class="quick-demo-box" style="margin-top:1.6rem">
+          <p style="margin:0 0 .5rem;color:var(--mute);font-size:.84rem">Want to test immediately without typing?</p>
+          <button id="quick-demo-login-btn" class="btn btn-sm" type="button" style="width:100%">⚡ 1-Click Demo Patient Login</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site">AI-generated information is not a replacement for professional medical advice.</footer>
+  <script src="api.js"></script>
+  <script src="common.js"></script>
+  <script src="login.js"></script>
+</body>
+
+</html>

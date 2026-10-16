@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prescription Vault | AI Health Risk Prediction</title>
+  <meta name="description" content="Secure Prescription Vault: upload doctor prescriptions, manage medications, and view structured clinical records.">
+  <meta name="theme-color" content="#060c19">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="orb-float a" aria-hidden="true"></div>
+  <div class="orb-float b" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="AI Health Risk Prediction home">
+      <b>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h4l3-8 4 16 3-8h4" />
+        </svg>
+      </b>
+      <span>AI Health Risk</span>
+    </a>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span></button>
+    <nav id="menu" class="menu" aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="history.html">Health History</a>
+      <a href="prescription.html" aria-current="page">Prescription Vault</a>
+      <a href="allergies.html">Allergies</a>
+      <a href="result.html">Result</a>
+      <a href="recommendation.html">Recommendations</a>
+    </nav>
+  </header>
+
+  <main id="main" class="container">
+    <!-- Page Header -->
+    <div style="margin: 1.5rem 0 1rem;">
+      <h1 class="ptitle" style="margin:0 0 .3rem">Prescription Vault</h1>
+      <p class="psub" style="margin:0">Securely upload doctor prescriptions, organize medications, and maintain a structured clinical collection.</p>
+    </div>
+
+    <!-- 1. LARGE UPLOAD CONTAINER AT THE TOP (Section 2.A) -->
+    <section class="vault-upload-container glass tilt" aria-labelledby="upload-heading" id="vault-upload-section">
+      <div class="vault-upload-hero">
+        <h2 id="upload-heading">Upload Prescription</h2>
+        <p>Attach an official prescription image or PDF (up to 10 MB). Preview your file, record structured clinical details, and save safely to your private vault.</p>
+      </div>
+
+      <!-- Upload Form -->
+      <form id="vault-upload-form" novalidate>
+        <!-- Centered Dropzone Container -->
+        <div class="vault-dropzone-box" id="vault-dropzone" tabindex="0" role="button" aria-label="Select prescription file">
+          <input type="file" id="prescription-file-input" accept=".pdf,.jpg,.jpeg,.png" aria-label="Prescription file input">
+          <div class="vault-dropzone-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <p style="font-size:1.05rem;font-weight:700;margin:0 0 .3rem;color:var(--text)">
+            Click to upload prescription file or drag & drop here
+          </p>
+          <p style="font-size:.85rem;color:var(--mute);margin:0 0 .8rem">
+            Supports PDF, JPG, JPEG, PNG (Maximum file size: 10 MB)
+          </p>
+          <button type="button" class="btn p vault-upload-btn-centered" id="trigger-file-btn" tabindex="-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Choose Prescription File
+          </button>
+        </div>
+
+        <!-- Selected File Preview Card (Displayed when a file is selected) -->
+        <div id="dropzone-file-preview" class="vault-preview-card" style="display:none">
+          <div class="vault-preview-left">
+            <div id="preview-thumb-box" class="vault-thumb-wrap">
+              <!-- Rendered dynamically (image thumbnail or PDF icon) -->
+            </div>
+            <div class="vault-file-meta-col">
+              <span id="preview-filename" class="vault-file-name">filename.pdf</span>
+              <div class="vault-file-size-type">
+                <span id="preview-filesize">0 MB</span>
+                <span>•</span>
+                <span id="preview-filetype" class="vault-type-tag">PDF</span>
+              </div>
+            </div>
+          </div>
+          <div class="vault-preview-actions">
+            <button id="replace-file-btn" type="button" class="btn btn-sm">Replace File</button>
+            <button id="remove-file-btn" type="button" class="btn btn-sm btn-danger">Remove</button>
+          </div>
+        </div>
+
+        <!-- Structured Prescription Details Fields -->
+        <div class="vault-fields-grid">
+          <div class="vault-field-group">
+            <label for="vault-date">
+              <span>📅</span> Prescription Date
+            </label>
+            <input type="date" id="vault-date" name="prescription_date">
+          </div>
+
+          <div class="vault-field-group">
+            <label for="vault-problem">
+              <span>🩺</span> Main Health Problem
+            </label>
+            <input type="text" id="vault-problem" name="main_health_problem" placeholder="e.g. Hypertension, Angina, Fever">
+          </div>
+
+          <div class="vault-field-group">
+            <label for="vault-doctor">
+              <span>👨‍⚕️</span> Doctor Name
+            </label>
+            <input type="text" id="vault-doctor" name="doctor_name" placeholder="e.g. Dr. Sarah Jenkins, MD">
+          </div>
+
+          <div class="vault-field-group">
+            <label for="vault-hospital">
+              <span>🏥</span> Hospital or Clinic
+            </label>
+            <input type="text" id="vault-hospital" name="hospital_name" placeholder="e.g. City Heart & Health Center">
+          </div>
+
+          <div class="vault-field-group">
+            <label for="vault-diagnosis">
+              <span>📋</span> Clinical Diagnosis
+            </label>
+            <input type="text" id="vault-diagnosis" name="diagnosis" placeholder="e.g. Essential Primary Hypertension">
+          </div>
+
+          <div class="vault-field-group">
+            <label for="vault-notes">
+              <span>📝</span> Instructions / Additional Notes
+            </label>
+            <input type="text" id="vault-notes" name="notes" placeholder="e.g. Take with food; follow-up in 30 days">
+          </div>
+        </div>
+
+        <!-- Prescribed Medicines Section -->
+        <div style="margin: 1.8rem 0 1.2rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
+            <div>
+              <h3 style="margin:0;font-size:1.05rem;color:var(--aqua)">Prescribed Medicines</h3>
+              <p style="margin:0;font-size:.82rem;color:var(--mute)">List individual medicines, dosages, and administration frequencies.</p>
+            </div>
+            <button id="add-med-row-btn" class="btn btn-sm" type="button">+ Add Medicine</button>
+          </div>
+
+          <div id="medicines-container">
+            <!-- Dynamic medicine rows generated here -->
+          </div>
+        </div>
+
+        <!-- Upload Progress Bar Indicator -->
+        <div id="vault-upload-progress" class="vault-upload-progress-wrap" style="display:none" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="progress-label-row">
+            <span id="upload-progress-text">Uploading prescription to secure vault...</span>
+            <span id="upload-progress-percent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="upload-progress-bar" class="progress-bar-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Form Status Box (Loading, Success, Error) -->
+        <div id="vault-upload-status" style="display:none" class="form-state-box" role="alert" aria-live="polite"></div>
+
+        <!-- Form Action Controls -->
+        <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.4rem;align-items:center;flex-wrap:wrap">
+          <button id="cancel-upload-btn" class="btn" type="button">Cancel</button>
+          <button id="submit-vault-btn" class="btn p" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save Prescription
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 2. SAVED PRESCRIPTION CARDS (Section 2.B) -->
+    <section class="prescriptions-section" aria-labelledby="vault-collection-heading">
+      <div class="prescriptions-section-head">
+        <div>
+          <h2 id="vault-collection-heading">
+            <span>🗂️</span> My Prescriptions
+          </h2>
+          <p style="margin:.2rem 0 0;color:var(--mute);font-size:.9rem">Chronological archive of all your saved prescriptions and medication records.</p>
+        </div>
+        <div id="vault-count-badge" style="font-size:.85rem;color:var(--aqua);font-weight:700"></div>
+      </div>
+
+      <!-- Prescriptions Grid Container -->
+      <div id="vault-list-container" class="prescriptions-grid" aria-live="polite">
+        <div class="glass empty-card" style="grid-column: 1 / -1; text-align:center; padding: 3rem 1.5rem;">
+          <p>Loading prescription vault records...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. PRESCRIPTION DETAILS MODAL (Section 2.C) -->
+    <div id="prescription-detail-modal" class="vault-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-presc-title">
+      <div class="vault-modal-box">
+        <div class="vault-modal-header">
+          <h3 id="modal-presc-title">
+            <span>📄</span> Prescription Details
+          </h3>
+          <button type="button" class="vault-modal-close" id="close-detail-modal-btn" aria-label="Close details modal">&times;</button>
+        </div>
+
+        <div class="vault-modal-body" id="modal-presc-body">
+          <!-- Populated dynamically via prescription.js -->
+        </div>
+
+        <div class="vault-modal-footer">
+          <div id="modal-file-link-container"></div>
+          <div style="display:flex;gap:.6rem;align-items:center">
+            <button type="button" class="btn btn-sm btn-danger" id="modal-delete-presc-btn">Delete Prescription</button>
+            <button type="button" class="btn btn-sm" id="modal-edit-toggle-btn">Edit Details</button>
+            <button type="button" class="btn btn-sm p" id="modal-close-btn">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div id="confirm-delete-modal" class="vault-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-title">
+      <div class="vault-modal-box" style="max-width: 440px;">
+        <div class="vault-modal-header">
+          <h3 id="confirm-delete-title" style="color:var(--crit)">
+            <span>⚠️</span> Confirm Deletion
+          </h3>
+          <button type="button" class="vault-modal-close" id="cancel-delete-modal-btn" aria-label="Cancel deletion">&times;</button>
+        </div>
+        <div class="vault-modal-body" style="padding:1.4rem;">
+          <p style="margin:0 0 1rem;font-size:.95rem;color:var(--text);line-height:1.5">
+            Are you sure you want to permanently delete this prescription and its associated file from your vault?
+          </p>
+          <p style="margin:0;font-size:.85rem;color:var(--mute)">
+            This action cannot be undone.
+          </p>
+        </div>
+        <div class="vault-modal-footer" style="justify-content:flex-end;gap:.6rem">
+          <button type="button" class="btn btn-sm" id="abort-delete-btn">Cancel</button>
+          <button type="button" class="btn btn-sm btn-danger" id="execute-delete-btn">Yes, Delete</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site">AI-generated information is not a replacement for professional medical advice.</footer>
+  <script src="api.js" defer></script>
+  <script src="common.js" defer></script>
+  <script src="prescription.js" defer></script>
+</body>
+
+</html>

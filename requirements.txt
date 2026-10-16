@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pandas
+numpy
+joblib
+scikit-learn==1.6.1
+pydantic
+sqlalchemy
+bcrypt
+python-jose[cryptography]
+python-dotenv
+psycopg2-binary
+python-multipart

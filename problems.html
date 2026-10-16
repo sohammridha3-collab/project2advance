@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recent Problems | AI Health Risk Prediction</title>
+  <meta name="description" content="View and manage recent health issues and logged symptoms.">
+  <meta name="theme-color" content="#060c19">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="orb-float a" aria-hidden="true"></div>
+  <div class="orb-float b" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="AI Health Risk Prediction home">
+      <b>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h4l3-8 4 16 3-8h4" />
+        </svg>
+      </b>
+      <span>AI Health Risk</span>
+    </a>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span></button>
+    <nav id="menu" class="menu" aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="history.html">Health History</a>
+      <a href="prescription.html">Prescription Vault</a>
+      <a href="allergies.html">Allergies</a>
+      <a href="result.html">Result</a>
+      <a href="recommendation.html">Recommendations</a>
+    </nav>
+  </header>
+
+  <main id="main" class="container">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;margin:1.4rem 0 .6rem">
+      <div>
+        <h1 class="ptitle" style="margin:0 0 .2rem">Recent Health Problems</h1>
+        <p class="psub" style="margin:0">Log and manage your personal symptoms, discomforts, and clinical observations.</p>
+      </div>
+      <button id="add-problem-toggle-btn" class="btn p" type="button">+ Log New Problem</button>
+    </div>
+
+    <!-- Quick Add Section (collapsible) -->
+    <div id="add-problem-panel" class="glass tilt" style="display:none;margin:1.5rem 0 2rem">
+      <h3 style="margin-top:0">Log a Health Symptom</h3>
+      <form id="page-problem-form" novalidate>
+        <label for="page-problem-text" style="display:block;font-size:.85rem;color:var(--mute);font-weight:600;margin-bottom:.4rem">Describe what you are experiencing *</label>
+        <textarea id="page-problem-text" class="nl-textarea" required placeholder="Example: I have been experiencing persistent chest tightness and mild shortness of breath during brisk walking."></textarea>
+
+        <div class="form-row">
+          <label style="font-size:.85rem;color:var(--mute);font-weight:600">
+            Category (optional, auto-inferred if blank)
+            <input type="text" id="page-problem-cat" placeholder="e.g. Cardiovascular, Respiratory, Neurological" style="font:500 1rem 'Manrope',sans-serif;color:var(--text);min-height:46px;padding:0 .9rem;border-radius:12px;border:1px solid var(--edge);background:rgba(8,16,34,.7);width:100%;box-sizing:border-box;margin-top:.35rem">
+          </label>
+          <label style="font-size:.85rem;color:var(--mute);font-weight:600">
+            Severity
+            <select id="page-problem-sev" style="font:500 1rem 'Manrope',sans-serif;color:var(--text);min-height:46px;padding:0 .9rem;border-radius:12px;border:1px solid var(--edge);background:rgba(8,16,34,.7);width:100%;box-sizing:border-box;margin-top:.35rem">
+              <option value="Mild">Mild</option>
+              <option value="Moderate" selected>Moderate</option>
+              <option value="Severe">Severe</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </label>
+          <label style="font-size:.85rem;color:var(--mute);font-weight:600">
+            Duration (optional)
+            <input type="text" id="page-problem-dur" placeholder="e.g. 2 days, 1 week" style="font:500 1rem 'Manrope',sans-serif;color:var(--text);min-height:46px;padding:0 .9rem;border-radius:12px;border:1px solid var(--edge);background:rgba(8,16,34,.7);width:100%;box-sizing:border-box;margin-top:.35rem">
+          </label>
+        </div>
+
+        <div id="page-problem-status" style="display:none" class="form-state-box"></div>
+
+        <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:.8rem">
+          <button id="cancel-add-btn" class="btn" type="button">Cancel</button>
+          <button id="page-problem-submit-btn" class="btn p" type="submit">Save Problem</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- List Container -->
+    <div id="problems-app" aria-live="polite" style="margin-top:1.5rem">
+      <div class="glass empty-card">
+        <p>Loading problems from database...</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site">AI-generated information is not a replacement for professional medical advice.</footer>
+  <script src="api.js" defer></script>
+  <script src="common.js" defer></script>
+  <script src="script.js" defer></script>
+  <script src="problems.js" defer></script>
+</body>
+
+</html>

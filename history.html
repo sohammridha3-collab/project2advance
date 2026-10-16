@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Health History | AI Health Risk Prediction</title>
+  <meta name="description" content="View your historical AI health risk predictions and clinical vital readings.">
+  <meta name="theme-color" content="#060c19">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="orb-float a" aria-hidden="true"></div>
+  <div class="orb-float b" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="AI Health Risk Prediction home">
+      <b>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h4l3-8 4 16 3-8h4" />
+        </svg>
+      </b>
+      <span>AI Health Risk</span>
+    </a>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span></button>
+    <nav id="menu" class="menu" aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="history.html" aria-current="page">Health History</a>
+      <a href="prescription.html">Prescription Vault</a>
+      <a href="allergies.html">Allergies</a>
+      <a href="result.html">Result</a>
+      <a href="recommendation.html">Recommendations</a>
+    </nav>
+  </header>
+
+  <main id="main" class="container">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;margin:1.4rem 0 1.2rem">
+      <div>
+        <h1 class="ptitle" style="margin:0 0 .2rem">Health Prediction History</h1>
+        <p class="psub" style="margin:0">Chronological record of your AI-evaluated cardiovascular assessments and vital signs.</p>
+      </div>
+      <a href="index.html#analysis" class="btn p">+ Run New Assessment</a>
+    </div>
+
+    <div id="history-app" aria-live="polite" style="margin-top:1.5rem">
+      <div class="glass empty-card">
+        <p>Loading assessment history from database...</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site">AI-generated information is not a replacement for professional medical advice.</footer>
+  <script src="api.js" defer></script>
+  <script src="common.js" defer></script>
+  <script src="script.js" defer></script>
+  <script src="history.js" defer></script>
+</body>
+
+</html>

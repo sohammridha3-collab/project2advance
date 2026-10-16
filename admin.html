@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Private Database & Access Logs | AI Health Risk</title>
+  <meta name="description" content="Private database viewer and access activity log.">
+  <meta name="theme-color" content="#060c19">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-container {
+      max-width: 1080px;
+      margin: 1.5rem auto 3rem;
+    }
+    .admin-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1rem;
+      margin: 1.2rem 0;
+    }
+    .stat-card {
+      padding: 1.2rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--edge);
+    }
+    .stat-val {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: .2rem 0;
+    }
+    .admin-table-wrap {
+      overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid var(--edge);
+      margin-top: .8rem;
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: .88rem;
+    }
+    .admin-table th {
+      background: rgba(14, 28, 58, 0.85);
+      color: var(--mute);
+      padding: .85rem 1rem;
+      font-weight: 600;
+      border-bottom: 1px solid var(--edge);
+      text-transform: uppercase;
+      font-size: .75rem;
+      letter-spacing: .06em;
+    }
+    .admin-table td {
+      padding: .85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+    .admin-table tr:hover td {
+      background: rgba(94, 224, 208, 0.04);
+    }
+    .status-badge-ok {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .2rem .65rem;
+      border-radius: 99px;
+      font-size: .78rem;
+      font-weight: 700;
+      background: rgba(95, 227, 176, 0.15);
+      border: 1px solid rgba(95, 227, 176, 0.35);
+      color: var(--low);
+    }
+    .status-badge-failed {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .2rem .65rem;
+      border-radius: 99px;
+      font-size: .78rem;
+      font-weight: 700;
+      background: rgba(255, 93, 120, 0.15);
+      border: 1px solid rgba(255, 93, 120, 0.35);
+      color: var(--crit);
+    }
+    .db-location-box {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .8rem 1rem;
+      border-radius: 12px;
+      background: rgba(8, 16, 34, 0.8);
+      border: 1px solid var(--edge);
+      font-family: monospace;
+      font-size: .85rem;
+      color: var(--aqua);
+      margin: 1rem 0;
+      word-break: break-all;
+    }
+    .tab-pills {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1rem;
+    }
+    .tab-pill {
+      padding: .5rem 1.1rem;
+      border-radius: 10px;
+      border: 1px solid var(--edge);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--mute);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: .88rem;
+      transition: all .2s;
+    }
+    .tab-pill.active {
+      background: linear-gradient(135deg, var(--aqua), var(--blue));
+      color: #04121a;
+      border-color: transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="orb-float a" aria-hidden="true"></div>
+  <div class="orb-float b" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="AI Health Risk home">
+      <b>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12h4l3-8 4 16 3-8h4" />
+        </svg>
+      </b>
+      <span>AI Health Risk</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:.8rem;margin-left:auto">
+      <span class="pill-chip" style="color:var(--mod);border-color:rgba(245,194,107,.4)">
+        🔒 Owner Private View (Only Visible to You)
+      </span>
+      <a href="index.html" class="btn btn-sm">&larr; Return to Dashboard</a>
+    </div>
+  </header>
+
+  <main id="main" class="container admin-container">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;margin:1.4rem 0 1rem">
+      <div>
+        <h1 class="ptitle" style="margin:0 0 .2rem">Database & Login Activity Monitor</h1>
+        <p class="psub" style="margin:0">Private database console showing registered patients and login event records. All accounts are auto-accepted with zero submit requirement.</p>
+      </div>
+      <button id="refresh-all-btn" class="btn p" type="button">🔄 Refresh Data</button>
+    </div>
+
+    <!-- Storage File Details -->
+    <div class="db-location-box">
+      <span>📁 Database Storage File:</span>
+      <span><strong>health_risk.db</strong> (SQLite) &bull; Tables: <strong>users</strong>, <strong>login_activities</strong></span>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="admin-stat-grid">
+      <div class="stat-card">
+        <span style="font-size:.82rem;color:var(--mute);text-transform:uppercase;letter-spacing:.05em">Total Registered Users</span>
+        <div id="stat-total-users" class="stat-val" style="color:var(--aqua)">-</div>
+        <p style="margin:0;font-size:.82rem;color:var(--mute)">Saved in <code>users</code> table</p>
+      </div>
+      <div class="stat-card">
+        <span style="font-size:.82rem;color:var(--mute);text-transform:uppercase;letter-spacing:.05em">Account Status</span>
+        <div class="stat-val" style="color:var(--low)">100% Accepted</div>
+        <p style="margin:0;font-size:.82rem;color:var(--mute)">All users auto-accepted</p>
+      </div>
+      <div class="stat-card">
+        <span style="font-size:.82rem;color:var(--mute);text-transform:uppercase;letter-spacing:.05em">Login Events Logged</span>
+        <div id="stat-total-logins" class="stat-val" style="color:var(--blue)">-</div>
+        <p style="margin:0;font-size:.82rem;color:var(--mute)">Saved in <code>login_activities</code></p>
+      </div>
+      <div class="stat-card">
+        <span style="font-size:.82rem;color:var(--mute);text-transform:uppercase;letter-spacing:.05em">Server Status</span>
+        <div id="stat-server-status" class="stat-val" style="color:var(--low)">Online</div>
+        <p style="margin:0;font-size:.82rem;color:var(--mute)">FastAPI backend at :8000</p>
+      </div>
+    </div>
+
+    <!-- Navigation View Switcher -->
+    <div class="tab-pills">
+      <button class="tab-pill active" id="pill-users-btn" type="button">👥 Registered Accounts Database</button>
+      <button class="tab-pill" id="pill-logins-btn" type="button">📋 Login & Access Logs (Who Logged In)</button>
+    </div>
+
+    <!-- View 1: Registered Users Table -->
+    <section id="section-users" class="glass tilt" style="margin-bottom:2rem">
+      <div class="card-header">
+        <div>
+          <h2 style="margin:0;font-size:1.25rem">Registered Patient Accounts</h2>
+          <p style="color:var(--mute);font-size:.88rem;margin-top:.2rem">All users saved in <code>health_risk.db</code>. Status is permanently accepted.</p>
+        </div>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width:60px">ID</th>
+              <th>Full Name</th>
+              <th>Email Address</th>
+              <th>Registration Date</th>
+              <th>Status</th>
+              <th>Assessments</th>
+            </tr>
+          </thead>
+          <tbody id="admin-users-tbody">
+            <tr>
+              <td colspan="6" style="text-align:center;padding:1.5rem;color:var(--mute)">Loading users from health_risk.db...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- View 2: Login Events Log Table -->
+    <section id="section-logins" class="glass tilt" style="display:none;margin-bottom:2rem">
+      <div class="card-header">
+        <div>
+          <h2 style="margin:0;font-size:1.25rem">Login Activity History</h2>
+          <p style="color:var(--mute);font-size:.88rem;margin-top:.2rem">Log of who attempted to log in or register, timestamps, and authentication outcomes.</p>
+        </div>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width:60px">#</th>
+              <th>Event</th>
+              <th>User Email</th>
+              <th>User Name</th>
+              <th>Event Timestamp</th>
+              <th>Outcome</th>
+            </tr>
+          </thead>
+          <tbody id="admin-logins-tbody">
+            <tr>
+              <td colspan="6" style="text-align:center;padding:1.5rem;color:var(--mute)">Loading login event history from health_risk.db...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">Private Clinical Administrator Console &bull; AI Health Risk Prediction System</footer>
+  <script src="api.js"></script>
+  <script src="common.js"></script>
+  <script src="admin.js"></script>
+</body>
+
+</html>

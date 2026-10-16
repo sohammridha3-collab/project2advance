@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard | AI Health Risk Prediction</title>
+  <meta name="description"
+    content="AI health risk prediction, clinical analytics dashboard, vital indicators, and medical recommendations.">
+  <meta name="theme-color" content="#060c19">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="orb-float a" aria-hidden="true"></div>
+  <div class="orb-float b" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="AI Health Risk Dashboard home">
+      <b>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12h4l3-8 4 16 3-8h4" />
+        </svg>
+      </b>
+      <span>AI Health Risk</span>
+    </a>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu"
+      aria-label="Open menu"><span></span></button>
+    <nav id="menu" class="menu" aria-label="Main">
+      <a href="index.html" aria-current="page" class="active">Dashboard</a>
+      <a href="history.html">Health History</a>
+      <a href="prescription.html">Prescription Vault</a>
+      <a href="allergies.html">Allergies</a>
+      <a href="result.html">Result</a>
+      <a href="recommendation.html">Recommendations</a>
+    </nav>
+  </header>
+
+  <main id="main" class="container">
+    <!-- 1. WELCOME / DASHBOARD HEADER SECTION (Section 3) -->
+    <section class="dashboard-welcome-banner glass" aria-labelledby="welcome-heading">
+      <div class="welcome-text-col">
+        <h1 id="welcome-heading">Welcome, <span id="dash-user-name">Patient</span></h1>
+        <p>Comprehensive cardiovascular risk analytics, vital signs monitoring, and personalized clinical guidance.</p>
+        <div class="welcome-meta-chips">
+          <span class="meta-chip" id="dash-model-status">Checking model status…</span>
+          <span class="meta-chip" id="dash-today-date">October 15, 2026</span>
+          <span class="meta-chip" id="dash-total-evals-badge">0 Assessments Recorded</span>
+        </div>
+        <div class="welcome-cta-group">
+          <a href="#analysis" class="btn p">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Run Risk Assessment
+          </a>
+          <a href="recommendation.html" class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Clinical Guidance
+          </a>
+        </div>
+      </div>
+
+      <!-- 3D Interactive Cardiac Hologram Visualizer Stage -->
+      <div class="cardiac-3d-stage" id="cardiac-3d-stage" aria-label="Interactive 3D Cardiovascular Model">
+        <div class="cardiac-3d-rings-container">
+          <div class="gyro-ring ring-x"></div>
+          <div class="gyro-ring ring-y"></div>
+          <div class="cardiac-aura"></div>
+        </div>
+        <canvas id="cardiac-3d-canvas" width="220" height="220" title="Interactive 3D Heart Lattice (move cursor to rotate)"></canvas>
+        <div class="cardiac-holo-tag">
+          <span class="holo-pulse-indicator"></span>
+          <span class="holo-pulse-caption">3D CARDIAC MESH &bull; <strong id="hologram-bpm">72</strong> BPM</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. PRIMARY TOP ANALYTICS GRID: Latest Result + Key Vitals (Section 3) -->
+    <section class="dashboard-top-grid" aria-label="Primary Health Indicators">
+      <!-- Left: Latest Health-Risk Assessment Card -->
+      <article class="latest-risk-card glass tilt" id="dashboard-latest-risk">
+        <div class="card-top-row">
+          <div class="card-title-group">
+            <h2>Latest Estimated Risk</h2>
+            <p>Most recent model prediction from your saved assessments</p>
+          </div>
+          <div id="latest-risk-badge-slot">
+            <span class="status-pill info">Checking...</span>
+          </div>
+        </div>
+
+        <div id="latest-risk-content">
+          <div style="text-align:center;padding:2rem 1rem">
+            <p style="color:var(--text-muted)">Loading latest health risk evaluation...</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Right: Key Health Indicators (Vitals Summary) -->
+      <article class="vitals-overview-card glass tilt" id="dashboard-vitals-overview">
+        <div class="card-top-row">
+          <div class="card-title-group">
+            <h3>Key Health Indicators</h3>
+            <p>Measurements from your latest saved assessment</p>
+          </div>
+          <span class="meta-chip" id="vitals-time-badge">Latest Records</span>
+        </div>
+
+        <div class="vitals-list-container" id="vitals-rows-container">
+          <!-- Populated dynamically via script.js with real data -->
+          <div style="text-align:center;padding:2rem 1rem">
+            <p style="color:var(--text-muted)">Loading vital readings...</p>
+          </div>
+        </div>
+
+        <div class="card-action-footer">
+          <a href="#analysis" class="btn btn-sm p" style="width:100%">+ Update Vital Readings</a>
+        </div>
+      </article>
+    </section>
+
+    <!-- 3. CLINICAL HUB QUICK ACTIONS (Prescription Vault, Recommendations, Allergies, Problems) -->
+    <section class="quick-hub-section" aria-labelledby="hub-heading">
+      <div class="section-headline-group">
+        <h2 id="hub-heading">Clinical Management Hub</h2>
+        <p>Access your medical documents, allergy sensitivities, symptoms, and clinical advice.</p>
+      </div>
+
+      <div class="quick-hub-grid">
+        <a href="prescription.html" class="quick-hub-card glass tilt">
+          <div class="quick-hub-icon-row">
+            <span class="quick-hub-icon">💊</span>
+            <span class="quick-hub-stat-pill" id="hub-presc-count">Prescription Vault</span>
+          </div>
+          <h3>Prescription Vault</h3>
+          <p>Securely store doctor prescriptions, upload clinical documents, and track medications.</p>
+          <span class="quick-hub-link">Open Prescription Vault &rarr;</span>
+        </a>
+
+        <a href="recommendation.html" class="quick-hub-card glass tilt">
+          <div class="quick-hub-icon-row">
+            <span class="quick-hub-icon">📋</span>
+            <span class="quick-hub-stat-pill">Clinical Guidance</span>
+          </div>
+          <h3>Personalized Guidance</h3>
+          <p>Physician-aligned advice, lifestyle recommendations, and medicine safety screenings.</p>
+          <span class="quick-hub-link">View Clinical Recommendations &rarr;</span>
+        </a>
+
+        <a href="allergies.html" class="quick-hub-card glass tilt">
+          <div class="quick-hub-icon-row">
+            <span class="quick-hub-icon">🛡️</span>
+            <span class="quick-hub-stat-pill" id="hub-allergy-count">Allergy Profile</span>
+          </div>
+          <h3>Allergy Sensitivities</h3>
+          <p>Document known drug and food allergies to protect against adverse interactions.</p>
+          <span class="quick-hub-link">Manage Allergy Profile &rarr;</span>
+        </a>
+
+        <a href="problems.html" class="quick-hub-card glass tilt">
+          <div class="quick-hub-icon-row">
+            <span class="quick-hub-icon">🩺</span>
+            <span class="quick-hub-stat-pill" id="hub-problem-count">Symptom Log</span>
+          </div>
+          <h3>Health Complaints</h3>
+          <p>Record recent symptoms and complaints with automated NLP categorization.</p>
+          <span class="quick-hub-link">View Health Problems &rarr;</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 4. HEALTH ASSESSMENT INPUT FORM -->
+    <section id="analysis" class="clinical-form-card glass" aria-labelledby="analysis-form-title">
+      <div class="form-header-area">
+        <h2 id="analysis-form-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ico"
+            style="color:var(--primary)" aria-hidden="true">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+          Heart Risk Assessment
+        </h2>
+        <p>Enter your own, current values. The trained model uses exactly these nine inputs to estimate a risk category.
+          Fields marked <span class="req" aria-hidden="true">*</span><span class="sr">with an asterisk</span> are
+          required.</p>
+      </div>
+
+      <!-- Urgent-care guidance: always visible, never gated behind the prediction -->
+      <aside class="urgent-box" aria-labelledby="urgent-title">
+        <div class="urgent-ico-3d-wrap">
+          <span class="urgent-ico" aria-hidden="true">!</span>
+          <span class="urgent-pulse-wave"></span>
+        </div>
+        <div class="urgent-content-col">
+          <div class="urgent-badge-pill">Clinical Safety Advisory</div>
+          <h3 id="urgent-title">Information give you a right path</h3>
+          <p>If you have chest pain or pressure, pain spreading to the arm, jaw or back, difficulty breathing, fainting,
+            or sudden weakness or confusion, <strong>call your local emergency number now</strong> (for example 112 in
+            India and Europe, 911 in the US).</p>
+        </div>
+      </aside>
+      <div id="red-flag-alert" class="urgent-box live" role="alert" hidden></div>
+
+      <form id="analysis-form" novalidate aria-describedby="analysis-form-title">
+        <fieldset class="form-fieldset-group">
+          <legend class="form-section-title">1. About you</legend>
+          <div class="form-grid-3">
+            <div class="field">
+              <label for="age">Age <span class="req" aria-hidden="true">*</span></label>
+              <div class="input-unit">
+                <input id="age" name="age" type="number" inputmode="numeric" min="1" max="120" step="1" required
+                  placeholder="e.g. 45" aria-describedby="age-help age-err">
+                <span class="unit" aria-hidden="true">years</span>
+              </div>
+              <p class="field-help" id="age-help">Whole years, 1–120.</p>
+              <p class="field-err" id="age-err"></p>
+            </div>
+            <div class="field">
+              <label for="gender">Sex <span class="req" aria-hidden="true">*</span></label>
+              <select id="gender" name="gender" data-options="gender" required
+                aria-describedby="gender-help gender-err"></select>
+              <p class="field-help" id="gender-help">The model was trained with Male / Female only.</p>
+              <p class="field-err" id="gender-err"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-fieldset-group">
+          <legend class="form-section-title">2. Medical history &amp; lifestyle</legend>
+          <div class="form-grid-3">
+            <div class="field">
+              <label for="smoker_status">Do you currently smoke? <span class="req" aria-hidden="true">*</span></label>
+              <select id="smoker_status" name="smoker_status" data-options="smoker_status" required
+                aria-describedby="smoker-help smoker_status-err"></select>
+              <p class="field-help" id="smoker-help">Any tobacco smoking at present.</p>
+              <p class="field-err" id="smoker_status-err"></p>
+            </div>
+            <div class="field">
+              <label for="diabetes_history">Diagnosed with diabetes? <span class="req"
+                  aria-hidden="true">*</span></label>
+              <select id="diabetes_history" name="diabetes_history" data-options="diabetes_history" required
+                aria-describedby="diabetes-help diabetes_history-err"></select>
+              <p class="field-help" id="diabetes-help">Diagnosed by a doctor (type 1 or type 2).</p>
+              <p class="field-err" id="diabetes_history-err"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-fieldset-group">
+          <legend class="form-section-title">3. Measurements</legend>
+          <p class="fieldset-note">Measure while seated and rested for at least 5 minutes.</p>
+          <div class="form-grid-3">
+            <div class="field">
+              <label for="systolic_blood_pressure">Systolic blood pressure <span class="req"
+                  aria-hidden="true">*</span></label>
+              <div class="input-unit">
+                <input id="systolic_blood_pressure" name="systolic_blood_pressure" type="number" inputmode="decimal"
+                  min="50" max="280" step="any" required placeholder="e.g. 118"
+                  aria-describedby="sbp-help systolic_blood_pressure-err">
+                <span class="unit" aria-hidden="true">mmHg</span>
+              </div>
+              <p class="field-help" id="sbp-help">The top number on a BP monitor. Accepted 50–280.</p>
+              <p class="field-err" id="systolic_blood_pressure-err"></p>
+            </div>
+            <div class="field">
+              <label for="heart_rate">Resting heart rate <span class="req" aria-hidden="true">*</span></label>
+              <div class="input-unit">
+                <input id="heart_rate" name="heart_rate" type="number" inputmode="decimal" min="30" max="250" step="any"
+                  required placeholder="e.g. 72" aria-describedby="hr-help heart_rate-err">
+                <span class="unit" aria-hidden="true">bpm</span>
+              </div>
+              <p class="field-help" id="hr-help">Beats per minute at rest. Accepted 30–250.</p>
+              <p class="field-err" id="heart_rate-err"></p>
+            </div>
+            <div class="field">
+              <label for="oxygen_saturation">Oxygen saturation (SpO₂) <span class="req"
+                  aria-hidden="true">*</span></label>
+              <div class="input-unit">
+                <input id="oxygen_saturation" name="oxygen_saturation" type="number" inputmode="decimal" min="50"
+                  max="100" step="any" required placeholder="e.g. 97"
+                  aria-describedby="spo2-help oxygen_saturation-err">
+                <span class="unit" aria-hidden="true">%</span>
+              </div>
+              <p class="field-help" id="spo2-help">From a finger pulse oximeter. Accepted 50–100.</p>
+              <p class="field-err" id="oxygen_saturation-err"></p>
+            </div>
+            <div class="field">
+              <label for="body_temperature">Body temperature <span class="req" aria-hidden="true">*</span></label>
+              <div class="input-unit">
+                <input id="body_temperature" name="body_temperature" type="number" inputmode="decimal" min="30" max="45"
+                  step="any" required placeholder="e.g. 36.8" aria-describedby="temp-help body_temperature-err">
+                <span class="unit" aria-hidden="true">°C</span>
+              </div>
+              <p class="field-help" id="temp-help">Degrees Celsius (°F − 32) × 5/9. Accepted 30–45.</p>
+              <p class="field-err" id="body_temperature-err"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-fieldset-group">
+          <legend class="form-section-title">4. Current symptoms</legend>
+          <div class="form-grid-3">
+            <div class="field">
+              <label for="chest_pain_severity">Chest pain right now <span class="req"
+                  aria-hidden="true">*</span></label>
+              <select id="chest_pain_severity" name="chest_pain_severity" required
+                aria-describedby="cp-help chest_pain_severity-err">
+                <option value="">Select 0–10…</option>
+                <option value="0">0 — No pain</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3 — Mild</option>
+                <option value="4">4</option>
+                <option value="5">5 — Moderate</option>
+                <option value="6">6</option>
+                <option value="7">7 — Severe</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10 — Worst imaginable</option>
+              </select>
+              <p class="field-help" id="cp-help">Self-rated on a 0–10 scale.</p>
+              <p class="field-err" id="chest_pain_severity-err"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <div id="form-error" class="form-state-box error" role="alert" hidden></div>
+
+        <button id="submit-btn" class="btn p submit-assessment" type="submit">
+          <span class="spinner" aria-hidden="true"></span>
+          <span class="btn-label">Submit Assessment</span>
+        </button>
+
+        <div class="form-hint-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4M12 8h.01" />
+          </svg>
+          <span>Your inputs are sent to the trained Random Forest model and the prediction is saved to your history. The
+            result is an <strong>estimated risk category</strong> from a statistical model — not a diagnosis. A low
+            estimate does not guarantee good health and a high estimate does not confirm a disease.</span>
+        </div>
+      </form>
+    </section>
+
+    <!-- 5. RECENT HEALTH PROBLEM & ASSESSMENT HISTORY SNAPSHOT -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem;margin-bottom:2.5rem"
+      id="dashboard-bottom-grid">
+      <!-- Recent Symptom Logger -->
+      <section id="recent-problem-section" class="glass tilt" style="padding:1.8rem" aria-labelledby="problem-heading">
+        <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:1rem">
+          <span class="chip-ico" style="margin:0"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg></span>
+          <div>
+            <h2 id="problem-heading" style="margin:0;font-size:1.25rem">Log Recent Health Symptom</h2>
+            <p style="margin:0;font-size:.85rem;color:var(--text-muted)">Record current complaints for clinical context.
+            </p>
+          </div>
+        </div>
+
+        <form id="problem-form" novalidate>
+          <label for="problem-text"
+            style="display:block;font-size:.85rem;color:var(--text-secondary);font-weight:600;margin-bottom:.4rem">Describe
+            what you are experiencing *</label>
+          <textarea id="problem-text" class="nl-textarea" required
+            placeholder="Example: Experiencing occasional chest fluttering and lightheadedness after stairs."
+            style="width:100%;box-sizing:border-box;min-height:76px"></textarea>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.8rem">
+            <div class="clinical-input-wrap">
+              <label for="problem-severity">Severity</label>
+              <select id="problem-severity">
+                <option value="Mild">Mild - Manageable</option>
+                <option value="Moderate" selected>Moderate - Discomforting</option>
+                <option value="Severe">Severe - High impact</option>
+                <option value="Critical">Critical - Emergency</option>
+              </select>
+            </div>
+            <div class="clinical-input-wrap">
+              <label for="problem-duration">Duration</label>
+              <input type="text" id="problem-duration" placeholder="e.g. 2 days, since morning">
+            </div>
+          </div>
+
+          <div id="problem-status" style="display:none" class="form-state-box"></div>
+
+          <div
+            style="display:flex;gap:.8rem;margin-top:1rem;justify-content:space-between;align-items:center;flex-wrap:wrap">
+            <button id="problem-submit-btn" class="btn p btn-sm" type="submit">Log Symptom</button>
+            <a href="problems.html"
+              style="font-size:.84rem;color:var(--primary);font-weight:700;text-decoration:none">View All Symptoms
+              &rarr;</a>
+          </div>
+        </form>
+      </section>
+
+      <!-- Recent Assessment History Snapshot -->
+      <section class="recent-history-preview-card glass tilt" id="dashboard-history-snapshot"
+        aria-labelledby="history-snapshot-title">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <div>
+            <h2 id="history-snapshot-title" style="margin:0;font-size:1.25rem">Recent Assessments</h2>
+            <p style="margin:0;font-size:.85rem;color:var(--text-muted)">Your latest risk evaluation snapshots.</p>
+          </div>
+          <a href="history.html" style="font-size:.84rem;color:var(--primary);font-weight:700;text-decoration:none">All
+            History &rarr;</a>
+        </div>
+
+        <div id="history-snapshot-container">
+          <p style="color:var(--text-muted);font-size:.9rem">Loading assessment snapshots...</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site">AI-generated clinical analytics and recommendations do not replace licensed healthcare diagnosis
+    or treatment.</footer>
+  <script src="api.js" defer></script>
+  <script src="common.js" defer></script>
+  <script src="script.js" defer></script>
+</body>
+
+</html>
