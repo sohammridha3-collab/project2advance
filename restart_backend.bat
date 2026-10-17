@@ -6,6 +6,7 @@ echo Stopping port 8000...
 call "%~dp0stop_backend.bat"
 
 echo.
+if exist "%~dp0.stop_signal" del "%~dp0.stop_signal" >nul 2>&1
 echo Starting FastAPI in background...
 wscript "%~dp0start_backend_silent.vbs"
 

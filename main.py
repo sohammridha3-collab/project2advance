@@ -1,4 +1,5 @@
 import os
+import time
 import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -7,7 +8,9 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException, status, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, FileResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from dotenv import load_dotenv
 
 from database.database import init_db, engine, get_db
@@ -107,6 +110,7 @@ class PrivateNetworkAccessMiddleware(BaseHTTPMiddleware):
                 del response.headers["access-control-allow-credentials"]
         return response
 
+# 1. CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -114,8 +118,52 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 app.add_middleware(PrivateNetworkAccessMiddleware)
+
+# 2. Global Request Timing & Structured Logging Middleware
+@app.middleware("http")
+async def request_logging_middleware(request: Request, call_next):
+    start_time = time.time()
+    client_host = request.client.host if request.client else "unknown"
+    clean_path = request.url.path
+    try:
+        response = await call_next(request)
+        duration_ms = round((time.time() - start_time) * 1000, 2)
+        # Log non-static requests (avoid cluttering logs with polling /health or static assets)
+        if not clean_path.startswith("/health") and not clean_path.endswith((".css", ".js", ".png", ".jpg", ".svg", ".ico")):
+            logger.info(f"{request.method} {clean_path} [{response.status_code}] ({duration_ms}ms) - {client_host}")
+        return response
+    except Exception as exc:
+        duration_ms = round((time.time() - start_time) * 1000, 2)
+        logger.error(f"[Server Error] {request.method} {clean_path} failed after {duration_ms}ms: {exc}", exc_info=True)
+        raise exc
+
+# 3. Global Exception Handler: Ensures unhandled errors return JSON with CORS headers
+# (Starlette's default ServerErrorMiddleware returns raw 500 without CORS, causing browser to report Network Error)
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    clean_path = request.url.path
+    logger.error(
+        f"[Unhandled Exception] {request.method} {clean_path}: {type(exc).__name__}: {exc}",
+        exc_info=True
+    )
+    origin = request.headers.get("origin")
+    cors_headers = {
+        "Access-Control-Allow-Origin": origin if origin else "*",
+        "Access-Control-Allow-Credentials": "true" if origin else "false",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    }
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": "An internal server error occurred. The backend engineering team has logged this issue.",
+            "status": "error"
+        },
+        headers=cors_headers
+    )
 
 # ============================================================
 # MOUNT ROUTERS (Support both direct and /api prefixed routes)
@@ -164,18 +212,60 @@ def api_status():
     }
 
 @app.get("/health", tags=["system"])
+@app.get("/api/health", tags=["system"], include_in_schema=False)
 def health_check():
+    """
+    Lightweight, fast liveness probe confirming FastAPI is responsive.
+    """
     model_loaded = is_model_ready()
     db_connected = False
     try:
         with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
             db_connected = True
-    except Exception:
+    except Exception as db_err:
+        logger.warning(f"[Health] Database probe warning: {db_err}")
         db_connected = False
 
     return {
         "status": "healthy" if (model_loaded and db_connected) else ("loading" if db_connected else "degraded"),
         "database_connected": db_connected,
+        "model_loaded": model_loaded,
+        "server": "online",
+        "version": "2.0.0"
+    }
+
+@app.get("/health/ready", tags=["system"])
+@app.get("/api/health/ready", tags=["system"], include_in_schema=False)
+def readiness_check(response: Response):
+    """
+    Deep readiness check verifying critical system dependencies (Database & ML Model).
+    Returns 503 if database connection fails, ensuring proper system monitoring.
+    """
+    model_loaded = is_model_ready()
+    db_connected = False
+    error_msg = None
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            db_connected = True
+    except Exception as exc:
+        db_connected = False
+        error_msg = str(exc)
+        logger.error(f"[Readiness] Database connectivity failure: {exc}")
+
+    if not db_connected:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return {
+            "status": "unready",
+            "database_connected": False,
+            "model_loaded": model_loaded,
+            "error": "Database unavailable"
+        }
+
+    return {
+        "status": "ready" if model_loaded else "standby",
+        "database_connected": True,
         "model_loaded": model_loaded
     }
 
@@ -240,4 +330,5 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR)), name="static")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    # In production and stable local execution, reload=False prevents database/log writes from triggering restarts
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=False)

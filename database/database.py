@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 logger = logging.getLogger("uvicorn")
 
+from sqlalchemy import event, text
+
 raw_database_url = os.getenv("DATABASE_URL", "sqlite:///./health_risk.db")
 
 # PostgreSQL compatibility fix for SQLAlchemy (postgres:// -> postgresql://)
@@ -14,21 +16,22 @@ if raw_database_url.startswith("postgres://"):
     raw_database_url = raw_database_url.replace("postgres://", "postgresql://", 1)
 
 connect_args = {}
-engine_kwargs = {}
+engine_kwargs = {"pool_pre_ping": True}
 
 if raw_database_url.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
-    engine_kwargs = {"connect_args": connect_args}
+    connect_args = {
+        "check_same_thread": False,
+        "timeout": 30.0  # 30-second busy timeout prevents "database is locked"
+    }
+    engine_kwargs["connect_args"] = connect_args
 elif "postgresql" in raw_database_url:
-    engine_kwargs = {
-        "pool_pre_ping": True,
+    engine_kwargs.update({
         "pool_size": 10,
         "max_overflow": 20
-    }
+    })
 
 try:
     engine = create_engine(raw_database_url, **engine_kwargs)
-    # Test connection
     with engine.connect() as conn:
         pass
 except Exception as exc:
@@ -38,9 +41,26 @@ except Exception as exc:
             f"Could not connect to PostgreSQL ({exc}). Falling back to SQLite for local development."
         )
         raw_database_url = "sqlite:///./health_risk.db"
-        engine = create_engine(raw_database_url, connect_args={"check_same_thread": False})
+        engine = create_engine(
+            raw_database_url,
+            connect_args={"check_same_thread": False, "timeout": 30.0},
+            pool_pre_ping=True
+        )
     else:
         raise exc
+
+# Configure SQLite for high concurrency (WAL mode allows concurrent readers and writers)
+if raw_database_url.startswith("sqlite"):
+    @event.listens_for(engine, "connect")
+    def _set_sqlite_pragmas(dbapi_connection, connection_record):
+        try:
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA journal_mode = WAL")
+            cursor.execute("PRAGMA synchronous = NORMAL")
+            cursor.execute("PRAGMA busy_timeout = 30000")
+            cursor.close()
+        except Exception as pragma_err:
+            logger.warning(f"[Database] Could not configure SQLite PRAGMAs: {pragma_err}")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

@@ -271,7 +271,12 @@ async def extract_prescription_fields_endpoint(
     extracted = extract_candidate_prescription_fields(disk_path, filename)
     extracted["staged_file_path"] = f"uploads/prescriptions/{unique_name}"
     extracted["original_filename"] = filename
-    return extracted
+    return {
+        "status": "extracted",
+        "extracted_data": extracted,
+        **extracted,
+        "notice": "Candidate details extracted by AI. Please review and verify all dosages and medicines before saving."
+    }
 
 
 # ============================================================
@@ -580,48 +585,4 @@ def download_prescription_file(
         filename=filename,
         content_disposition_type=disposition_type
     )
-
-
-# ============================================================
-# 8. PRESCRIPTION DOCUMENT INTELLIGENCE / EXTRACTION
-# ============================================================
-@router.post("/extract")
-async def extract_prescription_fields(
-    request: Request,
-    user: User = Depends(get_current_user)
-):
-    """
-    Analyzes an uploaded prescription file to extract candidate fields
-    (prescribing doctor, clinic, date, medicines, and candidate dosages).
-    Extracted fields are labeled as 'unverified' and must be confirmed by the patient.
-    """
-    import tempfile
-    form = await request.form()
-    file_obj = form.get("file")
-    if not file_obj or not hasattr(file_obj, "filename"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Prescription document file is required for extraction."
-        )
-
-    # Save to a temporary file for analysis
-    suffix = Path(file_obj.filename).suffix.lower()
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        content = await file_obj.read()
-        tmp.write(content)
-        tmp_path = Path(tmp.name)
-
-    try:
-        extracted = extract_candidate_prescription_fields(tmp_path, file_obj.filename)
-    finally:
-        try:
-            tmp_path.unlink()
-        except Exception:
-            pass
-
-    return {
-        "status": "extracted",
-        "extracted_data": extracted,
-        "notice": "Candidate details extracted by AI. Please review and verify all dosages and medicines before saving."
-    }
 

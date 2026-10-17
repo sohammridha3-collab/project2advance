@@ -6,13 +6,47 @@
   "use strict";
 
   const getApiBase = () => {
-    if (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http")) {
-      if (window.location.origin.includes(":8000")) {
-        return window.location.origin;
+    // 1. Explicit global configuration or build environment
+    if (typeof window !== "undefined") {
+      if (window.HEALTHBRIDGE_API_URL && typeof window.HEALTHBRIDGE_API_URL === "string") {
+        return window.HEALTHBRIDGE_API_URL.replace(/\/$/, "");
+      }
+      if (window.__API_BASE__ && typeof window.__API_BASE__ === "string") {
+        return window.__API_BASE__.replace(/\/$/, "");
+      }
+      // 2. Local storage override for custom testing
+      try {
+        const storedBase = localStorage.getItem("hr_api_base");
+        if (storedBase && storedBase.startsWith("http")) {
+          return storedBase.replace(/\/$/, "");
+        }
+      } catch {}
+
+      // 3. HTML meta tag configuration
+      try {
+        const metaTag = document.querySelector('meta[name="api-base-url"]');
+        if (metaTag && metaTag.content && metaTag.content.startsWith("http")) {
+          return metaTag.content.replace(/\/$/, "");
+        }
+      } catch {}
+
+      // 4. Inferred from current browser origin
+      if (window.location && window.location.origin && window.location.origin.startsWith("http")) {
+        // If loaded directly from FastAPI backend port 8000
+        if (window.location.origin.includes(":8000")) {
+          return window.location.origin;
+        }
+        // If loaded from dev server (e.g. port 5500, 3000, 5173) on a custom IP or host
+        const hostname = window.location.hostname;
+        if (hostname && hostname !== "localhost" && hostname !== "127.0.0.1") {
+          return `${window.location.protocol}//${hostname}:8000`;
+        }
       }
     }
+    // 5. Default reliable local development fallback
     return "http://127.0.0.1:8000";
   };
+
   let currentApiBase = getApiBase();
   let isServerOnline = true;
   let pollIntervalId = null;
@@ -21,10 +55,14 @@
     if (pollIntervalId) return;
     pollIntervalId = setInterval(async () => {
       try {
-        const candidates = Array.from(new Set([currentApiBase, "http://127.0.0.1:8000", "http://localhost:8000"]));
+        const candidates = Array.from(new Set([
+          currentApiBase,
+          "http://127.0.0.1:8000",
+          "http://localhost:8000"
+        ]));
         for (const base of candidates) {
           const ctrl = new AbortController();
-          const tid = setTimeout(() => ctrl.abort(), 1800);
+          const tid = setTimeout(() => ctrl.abort(), 2000);
           const res = await fetch(`${base}/health`, { signal: ctrl.signal }).catch(() => null);
           clearTimeout(tid);
           if (res && res.ok) {
@@ -38,7 +76,7 @@
           }
         }
       } catch {}
-    }, 2500);
+    }, 3000);
   }
 
   const TOKEN_KEY = "hr_auth_token";
@@ -66,8 +104,14 @@
     sessionStorage.removeItem(USER_KEY);
   };
 
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  /**
+   * Unified request handler with timeouts, bounded retry for transient network errors,
+   * distinct error typing (401/403/404/422/500/network), and auto-healing.
+   */
   async function request(endpoint, options = {}) {
-    const url = endpoint.startsWith("http") ? endpoint : `${currentApiBase}${endpoint}`;
+    const isFullUrl = endpoint.startsWith("http");
     const headers = options.headers || {};
 
     const token = getStoredToken();
@@ -75,47 +119,83 @@
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
+    const isFormData = options.body instanceof FormData;
+    if (!isFormData && !headers["Content-Type"]) {
       headers["Content-Type"] = "application/json";
     }
 
-    const config = {
-      ...options,
-      headers,
-    };
+    const maxRetries = options.retry !== undefined ? options.retry : 2;
+    const timeoutMs = options.timeoutMs || (isFormData ? 25000 : 12000);
 
-    let response;
-    try {
-      response = await fetch(url, config);
-      if (!isServerOnline) {
-        isServerOnline = true;
-        window.dispatchEvent(new CustomEvent("hr:backend_online", { detail: { base: currentApiBase } }));
-      }
-    } catch (networkError) {
-      // Intelligently try alternate loopback (127.0.0.1 <-> localhost) in case Windows mapped only one
-      if (!endpoint.startsWith("http")) {
-        const altBase = currentApiBase.includes("127.0.0.1") ? "http://localhost:8000" : "http://127.0.0.1:8000";
-        try {
-          response = await fetch(`${altBase}${endpoint}`, config);
-          currentApiBase = altBase; // Alternate succeeded, persist as current
-          if (!isServerOnline) {
-            isServerOnline = true;
-            window.dispatchEvent(new CustomEvent("hr:backend_online", { detail: { base: currentApiBase } }));
-          }
-        } catch (secondErr) {
-          // Both failed
+    let lastError = null;
+    let response = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      const url = isFullUrl ? endpoint : `${currentApiBase}${endpoint}`;
+      const controller = new AbortController();
+      const timerId = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        response = await fetch(url, {
+          ...options,
+          headers,
+          signal: options.signal || controller.signal,
+        });
+        clearTimeout(timerId);
+
+        if (!isServerOnline) {
+          isServerOnline = true;
+          window.dispatchEvent(new CustomEvent("hr:backend_online", { detail: { base: currentApiBase } }));
+        }
+        break; // Successfully received HTTP response
+      } catch (networkError) {
+        clearTimeout(timerId);
+        lastError = networkError;
+
+        // Try loopback alternate (127.0.0.1 <-> localhost) if on Windows default
+        if (!isFullUrl && attempt === 0 && (currentApiBase.includes("127.0.0.1") || currentApiBase.includes("localhost"))) {
+          const altBase = currentApiBase.includes("127.0.0.1")
+            ? currentApiBase.replace("127.0.0.1", "localhost")
+            : currentApiBase.replace("localhost", "127.0.0.1");
+          try {
+            const altController = new AbortController();
+            const altTimerId = setTimeout(() => altController.abort(), 2500);
+            const altRes = await fetch(`${altBase}${endpoint}`, {
+              ...options,
+              headers,
+              signal: altController.signal,
+            });
+            clearTimeout(altTimerId);
+            currentApiBase = altBase;
+            response = altRes;
+            if (!isServerOnline) {
+              isServerOnline = true;
+              window.dispatchEvent(new CustomEvent("hr:backend_online", { detail: { base: currentApiBase } }));
+            }
+            break;
+          } catch {}
+        }
+
+        // Bounded backoff retry only for genuinely transient network/socket glitches
+        if (attempt < maxRetries) {
+          const backoff = (attempt + 1) * 350;
+          await sleep(backoff);
+          continue;
         }
       }
+    }
 
-      if (!response) {
-        isServerOnline = false;
-        window.dispatchEvent(new CustomEvent("hr:backend_offline", { detail: { base: currentApiBase } }));
-        startAutoHealthPolling();
-        const err = new Error(`Cannot connect to backend server at ${currentApiBase}. Please ensure FastAPI is running.`);
-        err.network = true;
-        err.apiBase = currentApiBase;
-        throw err;
-      }
+    // Network connection completely failed after retries
+    if (!response) {
+      isServerOnline = false;
+      window.dispatchEvent(new CustomEvent("hr:backend_offline", { detail: { base: currentApiBase } }));
+      startAutoHealthPolling();
+      const err = new Error(`Cannot connect to backend server at ${currentApiBase}. Please ensure FastAPI is running.`);
+      err.isNetwork = true;
+      err.network = true;
+      err.apiBase = currentApiBase;
+      err.originalError = lastError;
+      throw err;
     }
 
     if (response.status === 204) {
@@ -134,16 +214,36 @@
       let message = `Request failed (${response.status})`;
       if (typeof data === "object" && data !== null) {
         if (Array.isArray(data.detail)) {
-          message = data.detail.map(d => `${d.loc ? d.loc.slice(1).join(".") + ": " : ""}${d.msg}`).join("; ");
+          message = data.detail.map((d) => `${d.loc ? d.loc.slice(1).join(".") + ": " : ""}${d.msg}`).join("; ");
         } else if (data.detail) {
           message = data.detail;
         } else if (data.message) {
           message = data.message;
         }
       }
+
+      // Handle specific HTTP error categories distinctly
+      if (response.status === 401) {
+        clearAuthData();
+        window.dispatchEvent(new CustomEvent("hr:auth_changed", { detail: { user: null, expired: true } }));
+        message = "Your session has expired or authentication credentials are invalid. Please sign in again.";
+      } else if (response.status === 403) {
+        message = data.detail || "You do not have permission to access or modify this medical record.";
+      } else if (response.status === 404) {
+        message = data.detail || "Requested medical record or endpoint could not be found.";
+      } else if (response.status >= 500) {
+        message = data.detail || "The backend server encountered an error processing your request. Please try again.";
+      }
+
       const err = new Error(message);
       err.status = response.status;
       err.data = data;
+      err.isAuth = response.status === 401;
+      err.isForbidden = response.status === 403;
+      err.isNotFound = response.status === 404;
+      err.isValidation = response.status === 422;
+      err.isServerError = response.status >= 500;
+      err.isNetwork = false;
       throw err;
     }
 

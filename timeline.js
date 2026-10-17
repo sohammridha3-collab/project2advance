@@ -122,19 +122,89 @@
   });
 
   async function loadTimeline() {
+    container.innerHTML = `
+      <div style="text-align:center;padding:3rem 1rem">
+        <p style="color:var(--text-muted)">Loading your chronological health timeline...</p>
+      </div>
+    `;
+
     try {
       allEvents = await timeline.list();
       updateCounts();
       renderEvents();
     } catch (err) {
-      container.innerHTML = `
-        <div class="form-state-box error" style="margin:2rem 0">
-          <span>⚠</span>
-          <span>Failed to load health timeline: ${esc(err.message)}</span>
-        </div>
-      `;
+      if (err.isAuth || err.status === 401) {
+        container.innerHTML = `
+          <div class="glass" style="text-align:center;padding:3rem 1.5rem;border-radius:16px;max-width:520px;margin:2rem auto">
+            <span style="font-size:2.6rem;display:block;margin-bottom:1rem">🔒</span>
+            <h3 style="margin:0 0 .5rem">Session Expired</h3>
+            <p style="color:var(--text-muted);margin:0 0 1.5rem">
+              Your session has expired. Please sign in again to access your health continuity timeline.
+            </p>
+            <button id="timeline-login-btn" class="btn p" type="button">Sign In Again</button>
+          </div>
+        `;
+        const btn = document.getElementById("timeline-login-btn");
+        if (btn && window.HR_UI && window.HR_UI.openAuthModal) {
+          btn.addEventListener("click", () => window.HR_UI.openAuthModal("login", loadTimeline));
+        }
+      } else if (err.isNetwork) {
+        container.innerHTML = `
+          <div class="glass" style="text-align:center;padding:3rem 1.5rem;border-radius:16px;border:1px solid rgba(239,68,68,0.4);max-width:540px;margin:2rem auto">
+            <span style="font-size:2.6rem;display:block;margin-bottom:1rem">🔌</span>
+            <h3 style="margin:0 0 .5rem;color:#fca5a5">Cannot Connect to Backend</h3>
+            <p style="color:var(--text-muted);margin:0 0 1.2rem;font-size:0.92rem;line-height:1.5">
+              Could not establish connection to the FastAPI server at <code>${esc(err.apiBase || "http://127.0.0.1:8000")}</code>.
+              The backend may be restarting or offline.
+            </p>
+            <div style="display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap">
+              <button id="timeline-retry-btn" class="btn p" type="button">⚡ Retry Connection</button>
+              <button id="timeline-help-btn" class="btn" type="button">🛠️ Troubleshooting</button>
+            </div>
+          </div>
+        `;
+        const retryBtn = document.getElementById("timeline-retry-btn");
+        if (retryBtn) {
+          retryBtn.addEventListener("click", () => {
+            retryBtn.textContent = "Connecting...";
+            retryBtn.disabled = true;
+            loadTimeline();
+          });
+        }
+        const helpBtn = document.getElementById("timeline-help-btn");
+        if (helpBtn && window.HR_UI && window.HR_UI.openBackendHelpModal) {
+          helpBtn.addEventListener("click", window.HR_UI.openBackendHelpModal);
+        }
+      } else {
+        container.innerHTML = `
+          <div class="glass" style="text-align:center;padding:3rem 1.5rem;border-radius:16px;border:1px solid rgba(239,68,68,0.3);max-width:520px;margin:2rem auto">
+            <span style="font-size:2.4rem;display:block;margin-bottom:.8rem">⚠</span>
+            <h3 style="margin:0 0 .5rem">Failed to Load Health Timeline</h3>
+            <p style="color:var(--text-muted);margin:0 0 1.2rem;font-size:0.92rem">
+              ${esc(err.message)}
+            </p>
+            <button id="timeline-retry-generic-btn" class="btn p" type="button">⚡ Try Again</button>
+          </div>
+        `;
+        const retryBtn = document.getElementById("timeline-retry-generic-btn");
+        if (retryBtn) {
+          retryBtn.addEventListener("click", loadTimeline);
+        }
+      }
     }
   }
+
+  // Auto-healing listeners
+  window.addEventListener("hr:backend_online", () => {
+    // Automatically re-request timeline as soon as FastAPI backend reconnects
+    loadTimeline();
+  });
+
+  window.addEventListener("hr:auth_changed", (e) => {
+    if (e.detail && e.detail.user) {
+      loadTimeline();
+    }
+  });
 
   document.addEventListener("DOMContentLoaded", () => {
     if (window.HR_UI && window.HR_UI.ensureAuth) {

@@ -2,6 +2,9 @@
 title Stop HealthBridge AI Backend
 cd /d "%~dp0"
 
+echo Setting stop signal for watchdog service...
+echo stop > "%~dp0.stop_signal"
+
 echo Stopping any running FastAPI / Uvicorn server on port 8000...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$lines = netstat -ano | Select-String ':8000' | Select-String 'LISTENING'; " ^

@@ -25,5 +25,5 @@ if not exist "%PY_EXE%" (
 echo Starting FastAPI Backend on http://127.0.0.1:8000...
 echo [IMPORTANT] Keep this terminal window open while using the app!
 echo ========================================================
-"%PY_EXE%" -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+"%PY_EXE%" -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload --reload-exclude "health_risk.db*" --reload-exclude "*.log" --reload-exclude "uploads/*" --reload-exclude "*.pyc" --reload-exclude ".git/*"
 pause
