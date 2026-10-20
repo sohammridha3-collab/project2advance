@@ -281,7 +281,7 @@ def predict_root(
     return prediction.run_prediction(data=data, db=db, optional_user=optional_user)
 
 # ============================================================
-# FRONTEND DIRECT SERVING (Serve index.html and app files at root)
+# FRONTEND DIRECT SERVING (Serve index.html, style.css, and app files at root)
 # ============================================================
 from fastapi.responses import FileResponse
 
@@ -289,36 +289,47 @@ from fastapi.responses import FileResponse
 def serve_index():
     index_file = BASE_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(index_file)
+        return FileResponse(index_file, media_type="text/html")
     return {"message": "AI Health Risk Prediction System Backend"}
-
-@app.get("/{page}.html", include_in_schema=False)
-def serve_html_page(page: str):
-    target = BASE_DIR / f"{page}.html"
-    if target.exists() and target.is_file():
-        return FileResponse(target)
-    raise HTTPException(status_code=404, detail="Page not found")
-
-@app.get("/{page}", include_in_schema=False)
-def serve_clean_page(page: str):
-    target = BASE_DIR / f"{page}.html"
-    if target.exists() and target.is_file():
-        return FileResponse(target)
-    raise HTTPException(status_code=404, detail="Page not found")
-
-@app.get("/{script}.js", include_in_schema=False)
-def serve_js_script(script: str):
-    target = BASE_DIR / f"{script}.js"
-    if target.exists() and target.is_file():
-        return FileResponse(target, media_type="application/javascript")
-    raise HTTPException(status_code=404, detail="Script not found")
 
 @app.get("/style.css", include_in_schema=False)
 def serve_stylesheet():
     target = BASE_DIR / "style.css"
-    if target.exists():
+    if target.exists() and target.is_file():
         return FileResponse(target, media_type="text/css")
     raise HTTPException(status_code=404, detail="Stylesheet not found")
+
+@app.get("/{filename:path}", include_in_schema=False)
+def serve_static_or_page(filename: str):
+    # Sanitize path to prevent directory traversal
+    clean_name = filename.strip("/\\")
+    if ".." in clean_name:
+        raise HTTPException(status_code=400, detail="Invalid file path")
+    
+    # 1. Exact file match (e.g., style.css, api.js, script.js, index.html)
+    exact_target = BASE_DIR / clean_name
+    if exact_target.is_file():
+        ext = exact_target.suffix.lower()
+        media_types = {
+            ".css": "text/css",
+            ".js": "application/javascript",
+            ".html": "text/html",
+            ".json": "application/json",
+            ".svg": "image/svg+xml",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".ico": "image/x-icon",
+            ".csv": "text/csv",
+        }
+        return FileResponse(exact_target, media_type=media_types.get(ext))
+
+    # 2. Clean URL without extension mapping to .html (e.g. /login -> login.html, /prescription -> prescription.html)
+    html_target = BASE_DIR / f"{clean_name}.html"
+    if html_target.is_file():
+        return FileResponse(html_target, media_type="text/html")
+
+    raise HTTPException(status_code=404, detail="File or page not found")
 
 # Brand assets (logo, favicon)
 ASSETS_DIR = BASE_DIR / "assets"
