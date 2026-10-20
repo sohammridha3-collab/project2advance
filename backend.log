@@ -3418,3 +3418,14 @@ INFO:     127.0.0.1:61750 - "GET /api/prescriptions HTTP/1.1" 200 OK
 INFO:     127.0.0.1:59347 - "GET /health HTTP/1.1" 200 OK
 INFO:     127.0.0.1:56882 - "GET /api/prescriptions HTTP/1.1" 200 OK
 INFO:     127.0.0.1:61750 - "GET /auth/me HTTP/1.1" 200 OK
+[20-10-2026 12:36:18.92] [HealthBridge Service] Starting FastAPI backend on http://127.0.0.1:8000 
+INFO:health_risk_system:[CORS] Allowed origins: ['http://127.0.0.1:8000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5500', 'http://localhost:5500', 'null', 'http://localhost:3000']
+INFO:     Started server process [18292]
+INFO:     Waiting for application startup.
+INFO:health_risk_system:==================================================
+INFO:health_risk_system: Starting AI-Based Health Risk Prediction Backend
+INFO:health_risk_system:==================================================
+INFO:health_risk_system:[Database] Database initialized and verified successfully.
+INFO:health_risk_system:[ML Model] Model background initialization started. Port 8000 ready immediately.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
