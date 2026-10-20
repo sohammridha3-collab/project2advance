@@ -3,9 +3,13 @@
   "use strict";
 
   const CONFIG = {
-    API_URL: (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.includes(":8000"))
-      ? window.location.origin
-      : "http://127.0.0.1:8000",
+    API_URL: (typeof window !== "undefined" && window.API && typeof window.API.getBaseUrl === "function")
+      ? window.API.getBaseUrl()
+      : (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http"))
+        ? ((window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port && window.location.port !== "8000"
+            ? "http://127.0.0.1:8000"
+            : window.location.origin)
+        : "http://127.0.0.1:8000",
     STORAGE_KEY: "hr_analysis_v1",
     // Must match the category values your model was trained on.
     OPTIONS: {

@@ -32,15 +32,14 @@
 
       // 4. Inferred from current browser origin
       if (window.location && window.location.origin && window.location.origin.startsWith("http")) {
-        // If loaded directly from FastAPI backend port 8000
-        if (window.location.origin.includes(":8000")) {
-          return window.location.origin;
-        }
-        // If loaded from dev server (e.g. port 5500, 3000, 5173) on a custom IP or host
         const hostname = window.location.hostname;
-        if (hostname && hostname !== "localhost" && hostname !== "127.0.0.1") {
-          return `${window.location.protocol}//${hostname}:8000`;
+        const port = window.location.port;
+        // If loaded from local static dev server (e.g. port 5500, 3000, 5173) on localhost/127.0.0.1, target FastAPI on port 8000
+        if ((hostname === "localhost" || hostname === "127.0.0.1") && port && port !== "8000") {
+          return "http://127.0.0.1:8000";
         }
+        // For public cloud deployments, tunnels, or direct backend access, the API is at the same origin
+        return window.location.origin;
       }
     }
     // 5. Default reliable local development fallback
