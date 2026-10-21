@@ -112,14 +112,25 @@ def explain_risk_influence(
     confidence: float,
     probabilities: dict,
     status_level: str,
-    patient_data: dict
+    patient_data: dict,
+    recent_problems: Optional[List[str]] = None
 ) -> str:
     """
     Transparently explains how the ML model's output and patient indicators
     informed the exercise plan, without diagnosing disease.
+    Explicitly documents how recent health problems materially modified recommendations.
     """
     conf_str = f"{confidence:.1f}%"
     risk_name = risk_level.strip()
+    problems_list = recent_problems or []
+    
+    problem_note = ""
+    if problems_list:
+        sample_problem = problems_list[0][:80]
+        problem_note = (
+            f" Contextual Symptom Modification: Our system reviewed your recorded symptom history ('{sample_problem}') "
+            f"and adjusted exercise selection to eliminate high-impact orthopaedic stress or contraindicated movements."
+        )
     
     if status_level == "Contraindicated_Urgent":
         return (
@@ -127,15 +138,15 @@ def explain_risk_influence(
             f"{conf_str} model ensemble vote share. In accordance with clinical safety guidelines (ACSM/AHA), active warning "
             f"symptoms and vital thresholds override standard AI exercise suggestions. Routine workouts are withheld until "
             f"a physician can conduct a formal in-person cardiovascular examination. This precaution is designed to safeguard "
-            f"your health and is not a definitive diagnosis."
+            f"your health and is not a definitive diagnosis.{problem_note}"
         )
     elif status_level == "Cautionary_Supervised":
         return (
             f"How Your Risk Assessment Influenced This Plan: Your analysis returned a '{risk_name}' classification with a "
             f"{conf_str} model ensemble vote share. Because your cardiovascular risk markers are in an intermediate-to-elevated tier, "
-            f"our clinical rules selected conservative, low-impact activities (such as recumbent cycling, controlled walking, and gentle yoga) "
+            f"our clinical rules selected conservative, low-impact activities (such as recumbent cycling, controlled walking, and gentle mobility) "
             f"while excluding high-intensity interval training (HIIT), heavy weightlifting, and breath-holding straining. "
-            f"The model score reflects pattern similarity to clinical training clusters, rather than a definitive diagnosis of disease."
+            f"The model score reflects pattern similarity to clinical training clusters, rather than a definitive diagnosis of disease.{problem_note}"
         )
     else:
         return (
@@ -143,7 +154,7 @@ def explain_risk_influence(
             f"{conf_str} model ensemble vote share. Given that your resting vitals and symptom screenings are stable, our system "
             f"prescribes a graduated aerobic building program (e.g., brisk walking, light resistance, and mobility routines) "
             f"focused on sustained cardiovascular stamina. Regular physical activity supports general wellness, but does not guarantee "
-            f"specific future numerical risk reductions."
+            f"specific future numerical risk reductions.{problem_note}"
         )
 
 
@@ -158,6 +169,11 @@ def generate_personalized_exercise_plan(
 ) -> Dict[str, Any]:
     """
     Main entry point for generating the complete personalized exercise recommendation.
+    Tailors exercise items, guidelines, and precautions based on the intersection of:
+    - ML risk category & confidence
+    - Patient vitals (BP, HR, SpO2, Chest Pain)
+    - Recent health problems (joint arthritis, back tension, respiratory sensitivity, etc.)
+    - Medication profile (beta-blockers, anticoagulants)
     """
     problems_list = recent_problems or []
     meds_list = historical_medicines or []
@@ -194,20 +210,24 @@ def generate_personalized_exercise_plan(
     # 3. Formulate Activity Level Assumption
     assumed_activity = activity_level_override or ("Sedentary / Baseline" if (age > 60 or sbp >= 140) else "Moderate Baseline")
 
-    # 4. Formulate Explanation
+    # 4. Formulate Transparent Explanation
     risk_influence_exp = explain_risk_influence(
         risk_level=risk_level,
         confidence=confidence,
         probabilities=probabilities,
         status_level=status_level,
-        patient_data=patient_data
+        patient_data=patient_data,
+        recent_problems=problems_list
     )
 
     exercises: List[Dict[str, Any]] = []
     general_guidelines: List[str] = []
 
-    # Check for specific medical context
-    has_joint_complaint = any(k in problems_blob for k in ["joint", "knee", "back pain", "arthritis", "hip", "ankle"])
+    # Specific symptom and musculoskeletal sub-types
+    has_joint_complaint = any(k in problems_blob for k in ["joint", "knee", "arthritis", "hip", "ankle", "tendonitis", "patell", "swollen joint"])
+    has_back_complaint = any(k in problems_blob for k in ["back pain", "lower back", "spine", "lumbar", "posture", "stiff back", "thoracic"])
+    has_respiratory_sensitivity = any(k in problems_blob for k in ["asthma", "bronchial", "seasonal breathing", "wheeze", "exercise asthma"])
+    
     is_on_beta_blockers = any("metoprolol" in m.lower() or "atenolol" in m.lower() or "carvedilol" in m.lower() for m in meds_list)
     is_on_anticoagulants = any("warfarin" in m.lower() or "clopidogrel" in m.lower() or "aspirin" in m.lower() for m in meds_list)
 
@@ -230,6 +250,7 @@ def generate_personalized_exercise_plan(
         if status_level == "Cautionary_Supervised":
             # --- Intermediate / Cautionary Exercise Selection ---
             if has_joint_complaint:
+                # Joint complaint: Replace weight-bearing walking with non-weight-bearing cycling and aquatic walking
                 exercises.append({
                     "name": "Recumbent Stationary Cycling",
                     "category": "Low-Impact Cardiovascular",
@@ -241,7 +262,65 @@ def generate_personalized_exercise_plan(
                     "equipment": "Recumbent exercise bicycle, supportive footwear",
                     "precautions": "Keep resistance low. Stop immediately if you experience lightheadedness, chest discomfort, or unusual pulse irregularities."
                 })
+                exercises.append({
+                    "name": "Supervised Water Walking / Shallow Pool Mobility",
+                    "category": "Aquatic Aerobic",
+                    "reason": "Water buoyancy offloads up to 75% of body weight, sparing knee/hip joints while maintaining cardiovascular stimulus.",
+                    "instructions": "In chest-deep water, walk forward and backward at a smooth rhythmic pace. Keep shoulders relaxed and swing arms gently through water.",
+                    "duration": "15 to 20 minutes",
+                    "intensity": "Light to Moderate (RPE 3 / 10)",
+                    "frequency": "2 to 3 days per week",
+                    "equipment": "Swimwear, non-slip aquatic water shoes",
+                    "precautions": "Avoid very hot pools or saunas which can provoke sudden vasodilation. Have a pool rail or supervisor nearby."
+                })
+                exercises.append({
+                    "name": "Gentle Seated Range-of-Motion & Dynamic Mobility",
+                    "category": "Mobility & Flexibility",
+                    "reason": "Maintains synovial joint lubrication and flexibility without compressive joint impact or blood pressure spikes.",
+                    "instructions": "Seated in a sturdy chair: gentle ankle rolls, seated knee extensions without weights, shoulder shrugs, and controlled arm circles.",
+                    "duration": "10 to 15 minutes",
+                    "intensity": "Light (RPE 2 / 10)",
+                    "frequency": "Daily or 5 days per week",
+                    "equipment": "Sturdy armless chair",
+                    "precautions": "Breathe continuously throughout each movement. Do not hold your breath."
+                })
+            elif has_back_complaint:
+                # Back complaint: Upright walking + spinal decompression and core alignment
+                exercises.append({
+                    "name": "Paced Flat-Surface Walking",
+                    "category": "Aerobic Conditioning",
+                    "reason": "Gentle upright walking promotes nutrient exchange in intervertebral discs without high compressive loading.",
+                    "instructions": "Walk on a smooth, level indoor track or flat paved surface. Maintain upright posture with gaze forward. Start with 5 minutes easy stroll, build to steady pace, end with 5 minutes stroll.",
+                    "duration": "15 to 25 minutes per session",
+                    "intensity": "Light to Moderate (RPE 3–4 / 10; comfortable conversational pace)",
+                    "frequency": "3 to 4 days per week",
+                    "equipment": "Well-cushioned athletic walking shoes, hydration bottle",
+                    "precautions": "Avoid uneven trails, steep hills, or carrying heavy bags while walking."
+                })
+                exercises.append({
+                    "name": "Spine-Spared Core Alignment & Thoracic Mobility",
+                    "category": "Core & Postural Mobility",
+                    "reason": "Strengthens deep lumbar stabilizers and relieves upper back tension without spinal flexion overload.",
+                    "instructions": "Perform seated pelvic tilts, gentle seated thoracic rotations, and standing wall presses with a flat spine. Maintain neutral cervical spine.",
+                    "duration": "10 to 15 minutes",
+                    "intensity": "Light (RPE 2–3 / 10)",
+                    "frequency": "4 to 5 days per week",
+                    "equipment": "Sturdy chair, wall support",
+                    "precautions": "Avoid loaded spinal twisting, toe touches, or standard sit-ups that compress lumbar vertebrae."
+                })
+                exercises.append({
+                    "name": "Gentle Seated Hamstring & Hip Flexor Release",
+                    "category": "Mobility & Flexibility",
+                    "reason": "Alleviates pelvic posterior tilt and relieves chronic lower back tension.",
+                    "instructions": "Sit on the edge of a chair with one leg extended straight ahead, heel on floor. Hinge gently forward from hips with a flat back until a light stretch is felt in the hamstring. Hold 20 seconds; switch legs.",
+                    "duration": "10 minutes",
+                    "intensity": "Light (RPE 2 / 10)",
+                    "frequency": "Daily",
+                    "equipment": "Sturdy chair",
+                    "precautions": "Never round the lower back while stretching. Breathe rhythmically."
+                })
             else:
+                # Standard cautionary profile
                 exercises.append({
                     "name": "Paced Flat-Surface Walking",
                     "category": "Aerobic Conditioning",
@@ -253,30 +332,28 @@ def generate_personalized_exercise_plan(
                     "equipment": "Well-cushioned athletic walking shoes, hydration bottle",
                     "precautions": "Avoid steep inclines, uneven terrain, or extreme outdoor temperatures (heat/cold). Monitor heart rate regularly."
                 })
-
-            exercises.append({
-                "name": "Gentle Seated Range-of-Motion & Dynamic Mobility",
-                "category": "Mobility & Flexibility",
-                "reason": "Enhances arterial flexibility, joint mobility, and venous return without elevating systolic blood pressure.",
-                "instructions": "Perform seated ankle circles, gentle knee extensions, shoulder rolls, and seated torso rotations. Move smoothly through a comfortable range of motion. Breathe steadily throughout.",
-                "duration": "10 to 15 minutes",
-                "intensity": "Light (RPE 2 / 10)",
-                "frequency": "Daily or 5 days per week",
-                "equipment": "Sturdy armless chair",
-                "precautions": "Never hold your breath (avoid the Valsalva maneuver). Avoid rapid transitions between seated and standing."
-            })
-
-            exercises.append({
-                "name": "Supervised Water Walking / Shallow Pool Mobility",
-                "category": "Aquatic Aerobic",
-                "reason": "Buoyancy reduces joint impact by up to 75% and hydrostatic pressure supports cardiovascular circulation.",
-                "instructions": "In chest-deep water, walk forward and backward at a steady pace. Keep posture upright and swing arms gently through the water for resistance.",
-                "duration": "15 to 20 minutes",
-                "intensity": "Light to Moderate (RPE 3 / 10)",
-                "frequency": "2 days per week",
-                "equipment": "Swimwear, non-slip aquatic water shoes",
-                "precautions": "Ensure a lifeguard is on duty. Do not use very hot hydrotherapy pools or saunas, as high heat can induce acute peripheral vasodilation and hypotension."
-            })
+                exercises.append({
+                    "name": "Gentle Seated Range-of-Motion & Dynamic Mobility",
+                    "category": "Mobility & Flexibility",
+                    "reason": "Enhances arterial flexibility, joint mobility, and venous return without elevating systolic blood pressure.",
+                    "instructions": "Perform seated ankle circles, gentle knee extensions, shoulder rolls, and seated torso rotations. Move smoothly through a comfortable range of motion. Breathe steadily throughout.",
+                    "duration": "10 to 15 minutes",
+                    "intensity": "Light (RPE 2 / 10)",
+                    "frequency": "Daily or 5 days per week",
+                    "equipment": "Sturdy armless chair",
+                    "precautions": "Never hold your breath (avoid the Valsalva maneuver). Avoid rapid transitions between seated and standing."
+                })
+                exercises.append({
+                    "name": "Supervised Water Walking / Shallow Pool Mobility",
+                    "category": "Aquatic Aerobic",
+                    "reason": "Buoyancy reduces joint impact by up to 75% and hydrostatic pressure supports cardiovascular circulation.",
+                    "instructions": "In chest-deep water, walk forward and backward at a steady pace. Keep posture upright and swing arms gently through the water for resistance.",
+                    "duration": "15 to 20 minutes",
+                    "intensity": "Light to Moderate (RPE 3 / 10)",
+                    "frequency": "2 days per week",
+                    "equipment": "Swimwear, non-slip aquatic water shoes",
+                    "precautions": "Ensure a lifeguard is on duty. Do not use very hot hydrotherapy pools or saunas, as high heat can induce acute peripheral vasodilation and hypotension."
+                })
 
             general_guidelines.extend([
                 "Perform a mandatory 5-minute warm-up before any activity and a 5-minute cool-down afterward.",
@@ -287,43 +364,133 @@ def generate_personalized_exercise_plan(
 
         else:
             # --- Cleared / Lower-Risk Exercise Selection ---
-            exercises.append({
-                "name": "Brisk Aerobic Walking (Interval Paced)",
-                "category": "Aerobic / Cardiovascular",
-                "reason": "Strengthens cardiovascular efficiency, supports endothelial health, and promotes resting blood pressure stabilization.",
-                "instructions": "Begin with a 5-minute gentle warm-up walk. Alternate between 3 minutes of brisk walking (where breathing quickens) and 2 minutes of moderate walking. Cool down with 5 minutes of relaxed walking and light stretching.",
-                "duration": "25 to 35 minutes per session",
-                "intensity": "Moderate (RPE 4–5 / 10; noticeable effort, comfortably maintainable)",
-                "frequency": "4 to 5 days per week",
-                "equipment": "Quality running/walking shoes with arch support",
-                "precautions": "Stay well-hydrated. If outdoor temperature exceeds 30°C (86°F) or is bitterly cold, exercise indoors."
-            })
-
-            exercises.append({
-                "name": "Functional Bodyweight Resistance Circuit",
-                "category": "Muscular Endurance & Metabolic Health",
-                "reason": "Enhances insulin sensitivity, preserves lean muscle mass, and aids metabolic glucose regulation.",
-                "instructions": "Perform 2 sets of 10–12 repetitions: Chair squats (sit-to-stand), wall push-ups, standing calf raises, and seated resistance band rows. Rest 60 seconds between exercises. Exhale during exertion, inhale during recovery.",
-                "duration": "15 to 20 minutes",
-                "intensity": "Moderate (RPE 4–5 / 10)",
-                "frequency": "2 to 3 non-consecutive days per week",
-                "equipment": "Sturdy chair, light resistance band",
-                "precautions": "Avoid straining to failure. Do not hold your breath during repetitions."
-            })
-
-            exercises.append({
-                "name": "Dynamic Flexibility & Postural Alignment",
-                "category": "Flexibility & Balance",
-                "reason": "Supports musculoskeletal stability, relieves back tension, and fosters healthy circulation.",
-                "instructions": "Perform gentle hamstring stretches, chest-opening doorway stretches, cat-cow stretches, and single-leg balance holds near a wall or sturdy support. Hold static stretches for 20–30 seconds without bouncing.",
-                "duration": "10 to 15 minutes",
-                "intensity": "Light (RPE 2 / 10)",
-                "frequency": "Daily or post-workout",
-                "equipment": "Yoga mat, sturdy wall for balance support",
-                "precautions": "Stretch only to the point of gentle tension, never acute pain."
-            })
-
-            if not has_joint_complaint:
+            if has_joint_complaint:
+                # Lower risk with joint complaint: Low-impact joint-spared aerobic & resistance
+                exercises.append({
+                    "name": "Low-Impact Elliptical Gliding or Water Walking",
+                    "category": "Aerobic / Cardiovascular",
+                    "reason": "Delivers full aerobic conditioning while eliminating ground-strike impact forces on knee and hip cartilage.",
+                    "instructions": "Begin with 5 minutes at gentle cadence and zero incline. Progress to a steady glide maintaining 55–65 RPM. Finish with a 3-minute easy cooldown glide.",
+                    "duration": "20 to 30 minutes per session",
+                    "intensity": "Moderate (RPE 4–5 / 10; noticeable effort, comfortably maintainable)",
+                    "frequency": "3 to 4 days per week",
+                    "equipment": "Elliptical trainer or access to shallow swimming pool, supportive athletic shoes",
+                    "precautions": "Maintain upright posture; do not lean heavily on handrails. Avoid steep resistance ramps."
+                })
+                exercises.append({
+                    "name": "Joint-Spared Seated Resistance & Upper Body Endurance",
+                    "category": "Muscular Endurance & Metabolic Health",
+                    "reason": "Improves metabolic glucose handling and lean muscle mass without deep knee flexion or axial joint compression.",
+                    "instructions": "Perform 2 sets of 10–12 repetitions: Seated resistance band rows, seated chest press with bands, wall push-ups, and seated core knee lifts. Rest 60 seconds between sets.",
+                    "duration": "15 to 20 minutes",
+                    "intensity": "Moderate (RPE 4 / 10)",
+                    "frequency": "2 to 3 non-consecutive days per week",
+                    "equipment": "Light-to-medium resistance band, sturdy chair",
+                    "precautions": "Avoid deep knee squats, lunges, or heavy leg press machines. Exhale on exertion."
+                })
+                exercises.append({
+                    "name": "Non-Weight-Bearing Dynamic Flexibility",
+                    "category": "Flexibility & Balance",
+                    "reason": "Enhances muscular compliance and blood circulation without orthopaedic joint shear.",
+                    "instructions": "Seated quad stretches, supine figure-4 hip stretches, doorway pectoral openers, and gentle ankle circles. Hold static positions 20–30 seconds.",
+                    "duration": "10 to 15 minutes",
+                    "intensity": "Light (RPE 2 / 10)",
+                    "frequency": "Daily",
+                    "equipment": "Yoga mat, sturdy chair",
+                    "precautions": "Do not bounce. Stretch to mild tension, never joint pain."
+                })
+                exercises.append({
+                    "name": "Smooth Recreational Swimming or Water Aerobics",
+                    "category": "Endurance Cardiovascular",
+                    "reason": "Total-body cardiovascular conditioning with zero orthopaedic shock on weight-bearing joints.",
+                    "instructions": "Swim relaxed freestyle or backstroke laps with a flutter kick, alternating every 2 laps with a 30-second rest. Or perform continuous water walking drills.",
+                    "duration": "20 to 25 minutes",
+                    "intensity": "Moderate (RPE 4 / 10)",
+                    "frequency": "2 days per week",
+                    "equipment": "Swim goggles, pool access",
+                    "precautions": "Stay hydrated. Avoid explosive kick turns or diving."
+                })
+            elif has_back_complaint:
+                # Lower risk with back complaint: Upright walking + neutral spine core stabilization
+                exercises.append({
+                    "name": "Brisk Aerobic Walking (Paced Stride)",
+                    "category": "Aerobic / Cardiovascular",
+                    "reason": "Upright rhythmic movement fosters healthy lumbar disc hydration and cardiovascular conditioning.",
+                    "instructions": "5-minute gentle warm-up walk, followed by 20 minutes of steady brisk walking with active arm swing. End with 5 minutes of relaxed walking.",
+                    "duration": "25 to 35 minutes per session",
+                    "intensity": "Moderate (RPE 4–5 / 10; noticeable effort, maintainable)",
+                    "frequency": "4 to 5 days per week",
+                    "equipment": "Supportive walking shoes with shock-absorbing soles",
+                    "precautions": "Walk on smooth flat surfaces. Avoid carrying backpacks or uneven stride patterns."
+                })
+                exercises.append({
+                    "name": "Neutral-Spine Core Stabilization Circuit",
+                    "category": "Muscular Endurance & Spine Health",
+                    "reason": "Strengthens deep abdominal and spinal erectors to create an internal muscular corset protecting the back.",
+                    "instructions": "Perform 2 sets: Bird-dog holds (10 reps each side, holding 3 seconds), glute bridges (10 reps, 2-second hold), and forearm plank from knees (20–30 seconds). Rest 60 seconds between sets.",
+                    "duration": "15 to 20 minutes",
+                    "intensity": "Moderate (RPE 4 / 10)",
+                    "frequency": "3 non-consecutive days per week",
+                    "equipment": "Comfortable exercise mat",
+                    "precautions": "Do not hyperextend your lower back during bird-dogs or bridges. Stop if back pain flares."
+                })
+                exercises.append({
+                    "name": "Thoracic Spine Mobility & Postural Alignment",
+                    "category": "Flexibility & Balance",
+                    "reason": "Frees up thoracic spine mobility and stretches tight chest muscles that cause back tension.",
+                    "instructions": "Doorway chest opening stretches, cat-cow gentle spinal mobilization on hands and knees, and chin tucks. Hold static poses for 20 seconds.",
+                    "duration": "10 to 15 minutes",
+                    "intensity": "Light (RPE 2 / 10)",
+                    "frequency": "Daily",
+                    "equipment": "Exercise mat, doorway",
+                    "precautions": "Move slowly through range of motion; avoid jerky twisting."
+                })
+                exercises.append({
+                    "name": "Low-Impact Stationary Cycling (Upright Posture)",
+                    "category": "Endurance Cardiovascular",
+                    "reason": "Supports cardiovascular stamina with supported spinal posture.",
+                    "instructions": "Set handlebar height level with or slightly higher than the saddle to avoid forward slouching. Pedal at 60–70 RPM at moderate resistance.",
+                    "duration": "20 to 25 minutes",
+                    "intensity": "Moderate (RPE 4 / 10)",
+                    "frequency": "2 days per week",
+                    "equipment": "Upright stationary bike",
+                    "precautions": "Avoid hunching or aggressively leaning forward."
+                })
+            else:
+                # Standard lower risk profile
+                exercises.append({
+                    "name": "Brisk Aerobic Walking (Interval Paced)",
+                    "category": "Aerobic / Cardiovascular",
+                    "reason": "Strengthens cardiovascular efficiency, supports endothelial health, and promotes resting blood pressure stabilization.",
+                    "instructions": "Begin with a 5-minute gentle warm-up walk. Alternate between 3 minutes of brisk walking (where breathing quickens) and 2 minutes of moderate walking. Cool down with 5 minutes of relaxed walking and light stretching.",
+                    "duration": "25 to 35 minutes per session",
+                    "intensity": "Moderate (RPE 4–5 / 10; noticeable effort, comfortably maintainable)",
+                    "frequency": "4 to 5 days per week",
+                    "equipment": "Quality running/walking shoes with arch support",
+                    "precautions": "Stay well-hydrated. If outdoor temperature exceeds 30°C (86°F) or is bitterly cold, exercise indoors."
+                })
+                exercises.append({
+                    "name": "Functional Bodyweight Resistance Circuit",
+                    "category": "Muscular Endurance & Metabolic Health",
+                    "reason": "Enhances insulin sensitivity, preserves lean muscle mass, and aids metabolic glucose regulation.",
+                    "instructions": "Perform 2 sets of 10–12 repetitions: Chair squats (sit-to-stand), wall push-ups, standing calf raises, and seated resistance band rows. Rest 60 seconds between exercises. Exhale during exertion, inhale during recovery.",
+                    "duration": "15 to 20 minutes",
+                    "intensity": "Moderate (RPE 4–5 / 10)",
+                    "frequency": "2 to 3 non-consecutive days per week",
+                    "equipment": "Sturdy chair, light resistance band",
+                    "precautions": "Avoid straining to failure. Do not hold your breath during repetitions."
+                })
+                exercises.append({
+                    "name": "Dynamic Flexibility & Postural Alignment",
+                    "category": "Flexibility & Balance",
+                    "reason": "Supports musculoskeletal stability, relieves back tension, and fosters healthy circulation.",
+                    "instructions": "Perform gentle hamstring stretches, chest-opening doorway stretches, cat-cow stretches, and single-leg balance holds near a wall or sturdy support. Hold static stretches for 20–30 seconds without bouncing.",
+                    "duration": "10 to 15 minutes",
+                    "intensity": "Light (RPE 2 / 10)",
+                    "frequency": "Daily or post-workout",
+                    "equipment": "Yoga mat, sturdy wall for balance support",
+                    "precautions": "Stretch only to the point of gentle tension, never acute pain."
+                })
                 exercises.append({
                     "name": "Recreational Cycling or Swimming",
                     "category": "Endurance Cardiovascular",
@@ -344,6 +511,10 @@ def generate_personalized_exercise_plan(
             ])
 
     # Specific clinical condition overlays
+    if has_respiratory_sensitivity:
+        general_guidelines.append(
+            "Respiratory Sensitivity Precaution: Perform an extended 8-to-10 minute low-velocity warm-up to gradually precondition airways. Exercise in temperature-controlled indoor spaces (avoid cold, dry air), focus on nasal breathing to warm incoming airflow, and always carry your prescribed rescue inhaler."
+        )
     if has_diabetes:
         general_guidelines.append(
             "Diabetes Precaution: Check your blood glucose before exercise. Carry rapid-acting carbohydrates (e.g., glucose tablets or fruit juice) in case of hypoglycemia, and inspect your feet daily for blisters or pressure spots."

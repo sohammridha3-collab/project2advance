@@ -3163,3 +3163,109 @@ html.js .reveal.in{opacity:1;transform:none;transition:opacity .6s var(--ease),t
   align-items: center;
   gap: 0.75rem;
 }
+
+/* Stop Exercising Immediately Warning Card */
+.exercise-stop-card {
+  padding: 1.3rem 1.6rem;
+  border-radius: 16px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  box-shadow: 0 10px 32px -8px rgba(239, 68, 68, 0.22);
+  margin-top: 1.25rem;
+}
+
+.exercise-stop-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #fca5a5;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+
+.exercise-stop-header svg {
+  width: 22px;
+  height: 22px;
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.exercise-stop-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.5rem 1.25rem;
+  padding: 0;
+  margin: 0.6rem 0 0;
+  list-style: none;
+}
+
+.exercise-stop-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.86rem;
+  color: #fecaca;
+  line-height: 1.45;
+}
+
+.exercise-stop-list li svg {
+  width: 16px;
+  height: 16px;
+  color: #f87171;
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+/* Activity Illustration Icon Badge */
+.exercise-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+.exercise-icon-badge svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Refresh Plan Button */
+.btn-refresh-plan {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--aqua);
+  background: rgba(94, 224, 208, 0.1);
+  border: 1px solid rgba(94, 224, 208, 0.3);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-refresh-plan:hover {
+  background: rgba(94, 224, 208, 0.22);
+  border-color: var(--aqua);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px -2px rgba(94, 224, 208, 0.3);
+}
+
+.btn-refresh-plan svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.3s ease;
+}
+
+.btn-refresh-plan.spinning svg {
+  animation: spin 0.8s linear infinite;
+}
+

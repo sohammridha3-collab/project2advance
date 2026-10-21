@@ -39,7 +39,9 @@ def run_prediction(
             patient=patient_dict,
             risk_level=ml_result["risk_level"],
             confidence=ml_result["confidence"],
-            probabilities=ml_result["probabilities"]
+            probabilities=ml_result["probabilities"],
+            user=optional_user,
+            db=db
         )
         meds_data = generate_medications_guidance(patient_dict, ml_result["risk_level"])
 

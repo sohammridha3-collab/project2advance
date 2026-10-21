@@ -302,15 +302,17 @@ def generate_recommendations(
     patient: dict,
     risk_level: str,
     confidence: float = 100.0,
-    probabilities: Optional[Dict[str, float]] = None
+    probabilities: Optional[Dict[str, float]] = None,
+    user: Optional[User] = None,
+    db: Optional[Session] = None
 ) -> Dict[str, Any]:
     res = build_personalized_recommendations(
         patient_data=patient,
         risk_level=risk_level,
         confidence=confidence or 100.0,
         probabilities=probabilities or {},
-        user=None,
-        db=None
+        user=user,
+        db=db
     )
     return {
         "risk_level": risk_level,

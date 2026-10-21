@@ -32,6 +32,27 @@
     }
   };
 
+  // Activity Illustration Icon SVG helper
+  const activityIcon = (cat, name) => {
+    const s = `${cat} ${name}`.toLowerCase();
+    if (s.includes("cycl") || s.includes("bike")) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5L9 11l3-5 4 4h4"/><path d="m12 6 3 5-3 6.5"/></svg>`;
+    }
+    if (s.includes("water") || s.includes("pool") || s.includes("swim") || s.includes("aquatic")) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c1.5-1.5 3.5-1.5 5 0s3.5 1.5 5 0 3.5-1.5 5 0 3.5 1.5 5 0"/><path d="M2 18c1.5-1.5 3.5-1.5 5 0s3.5 1.5 5 0 3.5-1.5 5 0 3.5 1.5 5 0"/><circle cx="12" cy="5" r="2"/></svg>`;
+    }
+    if (s.includes("walk") || s.includes("aerobic") || s.includes("elliptical")) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4v4l3 3-1.5 1.5-2.5-2.5V14l-4 6-1.5-1 3.5-5.5L8 10H5V8h4.5l2-3.5A2 2 0 1 1 13 4z"/><circle cx="13" cy="3" r="1.5"/></svg>`;
+    }
+    if (s.includes("resist") || s.includes("strength") || s.includes("circuit") || s.includes("push-up") || s.includes("endurance")) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1a2 2 0 0 0-2.83 0l-.88.88a2 2 0 0 1-2.83 0l-4.58-4.58a2 2 0 0 1 0-2.83l.88-.88a2 2 0 0 0 0-2.83l-1-1"/><path d="m3 3 1 1a2 2 0 0 0 2.83 0l.88-.88a2 2 0 0 1 2.83 0l4.58 4.58a2 2 0 0 1 0 2.83l-.88.88a2 2 0 0 0 0 2.83l1 1"/></svg>`;
+    }
+    if (s.includes("flex") || s.includes("mobil") || s.includes("stretch") || s.includes("yoga") || s.includes("postur") || s.includes("core") || s.includes("spine")) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M9 10h6"/><path d="m6 13 3-3"/><path d="m18 13-3-3"/></svg>`;
+    }
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`;
+  };
+
   // Render Loading State
   function renderLoading() {
     app.innerHTML = `
@@ -340,9 +361,14 @@
       const exerciseCardsHtml = (ep.exercises || []).map((ex, idx) => `
         <div class="glass exercise-card reveal" style="--i:${idx + 4}">
           <div class="exercise-card-header">
-            <div>
-              <span class="exercise-category-chip">${esc(ex.category)}</span>
-              <h3 class="exercise-name">${esc(ex.name)}</h3>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div class="exercise-icon-badge" aria-hidden="true">
+                ${activityIcon(ex.category, ex.name)}
+              </div>
+              <div>
+                <span class="exercise-category-chip">${esc(ex.category)}</span>
+                <h3 class="exercise-name">${esc(ex.name)}</h3>
+              </div>
             </div>
             <span class="exercise-intensity-badge">${esc(ex.intensity)}</span>
           </div>
@@ -388,6 +414,25 @@
         </div>
       ` : "";
 
+      const stopCriteriaHtml = `
+        <div class="exercise-stop-card reveal">
+          <div class="exercise-stop-header">
+            ${svgIcon("alert")} <span>When to Stop Exercising Immediately & Seek Medical Evaluation</span>
+          </div>
+          <p style="margin:0 0 .5rem;font-size:.88rem;color:#fecaca">
+            Do NOT attempt to push through symptoms or exertion distress. Discontinue physical activity immediately and contact emergency care (e.g., 911 / 112) or your cardiologist if you experience any of the following:
+          </p>
+          <ul class="exercise-stop-list">
+            <li>${svgIcon("alert")} Sudden chest pain, substernal tightness, or squeezing pressure</li>
+            <li>${svgIcon("alert")} Pain or numbness radiating to your left arm, neck, jaw, or shoulder blades</li>
+            <li>${svgIcon("alert")} Severe breathlessness or inability to speak full sentences at rest</li>
+            <li>${svgIcon("alert")} Sudden lightheadedness, dizziness, cold clammy sweats, or faintness</li>
+            <li>${svgIcon("alert")} Rapid heart palpitations, fluttering sensations, or irregular skipping beats</li>
+            <li>${svgIcon("alert")} Acute, sharp joint pain, swelling, or sudden musculoskeletal distress</li>
+          </ul>
+        </div>
+      `;
+
       let exercisesContentHtml = "";
       if (statusLevel === "Contraindicated_Urgent" || !safety.is_exercise_cleared) {
         exercisesContentHtml = `
@@ -411,21 +456,31 @@
 
       exerciseSectionHtml = `
         <section class="exercise-section" id="exercise-section">
-          <div class="med-section-head">
-            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
-              <span class="badge-ai-guidance">${svgIcon("activity")} Physical Activity Plan</span>
-              <span class="badge-verified-db">Clinical Safety Rules</span>
+          <div class="med-section-head" style="margin-bottom:1rem">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+              <div>
+                <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+                  <span class="badge-ai-guidance">${svgIcon("activity")} Physical Activity Plan</span>
+                  <span class="badge-verified-db">Clinical Safety Rules</span>
+                </div>
+                <h2 style="margin:.35rem 0 0;font-size:1.35rem">Personalized Exercise Plan</h2>
+                <p style="color:var(--mute);margin:.3rem 0 0;font-size:.9rem">
+                  Custom-tailored physical activity regimen incorporating your ML risk category, ensemble vote share, vital markers, and clinical symptoms.
+                </p>
+              </div>
+              <button id="btn-refresh-exercise-plan" class="btn-refresh-plan" type="button" title="Refresh personalized exercise recommendations">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <span>Refresh Plan</span>
+              </button>
             </div>
-            <h2 style="margin:0;font-size:1.35rem">Personalized Exercise Recommendations</h2>
-            <p style="color:var(--mute);margin:0;font-size:.9rem">
-              Custom-tailored physical activity regimen incorporating your ML risk category, ensemble vote share, vital markers, and clinical symptoms.
-            </p>
           </div>
 
           ${safetyAlertHtml}
           ${influenceCardHtml}
           
           ${exercisesContentHtml}
+
+          ${stopCriteriaHtml}
 
           ${guidelinesHtml}
 
@@ -587,6 +642,19 @@
         e.preventDefault();
         if (window.HR_COMMON && window.HR_COMMON.openAuthModal) {
           window.HR_COMMON.openAuthModal("login", () => loadRecommendations());
+        }
+      });
+    }
+
+    const refreshPlanBtn = document.getElementById("btn-refresh-exercise-plan");
+    if (refreshPlanBtn) {
+      refreshPlanBtn.addEventListener("click", async () => {
+        refreshPlanBtn.classList.add("spinning");
+        try {
+          await loadRecommendations();
+        } finally {
+          const btn = document.getElementById("btn-refresh-exercise-plan");
+          if (btn) btn.classList.remove("spinning");
         }
       });
     }
