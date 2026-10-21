@@ -3429,3 +3429,226 @@ INFO:health_risk_system:[Database] Database initialized and verified successfull
 INFO:health_risk_system:[ML Model] Model background initialization started. Port 8000 ready immediately.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+[ML Engine] Heart risk model loaded successfully from C:\Users\Sayan Mridha\Desktop\project2advance\heart_risk_model.pkl
+INFO:     127.0.0.1:57063 - "GET /health HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /index.html [200] (1472.84ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /index.html HTTP/1.1" 200 OK
+INFO:health_risk_system:POST /predict [422] (2981.91ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "POST /predict HTTP/1.1" 422 Unprocessable Entity
+INFO:health_risk_system:POST /predict [200] (5348.09ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "POST /predict HTTP/1.1" 200 OK
+INFO:health_risk_system:GET / [200] (17.49ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET / HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /style.css HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /api.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /common.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /script.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /assets/icons/favicon.svg HTTP/1.1" 200 OK
+INFO:health_risk_system:GET / [200] (2.57ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET / HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /script.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /common.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /style.css HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /api.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /style.css HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /script.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /api.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /common.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /api.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /style.css HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /script.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /common.js HTTP/1.1" 404 Not Found
+INFO:health_risk_system:GET /timeline.html [200] (1.02ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /timeline.html HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /api.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /style.css HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /timeline.js HTTP/1.1" 404 Not Found
+INFO:     45.249.164.63:0 - "GET /common.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53330 - "GET /style.css HTTP/1.1" 404 Not Found
+[20-10-2026 16:22:56.49] [HealthBridge Service] FastAPI backend stopped (Exit Code: 1). Automatically restarting in 2 seconds... 
+[20-10-2026 16:22:58.21] [HealthBridge Service] Starting FastAPI backend on http://127.0.0.1:8000 
+INFO:health_risk_system:[CORS] Allowed origins: ['null', 'http://localhost:5500', 'http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:5500', 'http://127.0.0.1:8000', 'http://127.0.0.1:3000', 'http://localhost:8000']
+INFO:     Started server process [8040]
+INFO:     Waiting for application startup.
+INFO:health_risk_system:==================================================
+INFO:health_risk_system: Starting AI-Based Health Risk Prediction Backend
+INFO:health_risk_system:==================================================
+INFO:health_risk_system:[Database] Database initialized and verified successfully.
+INFO:health_risk_system:[ML Model] Model background initialization started. Port 8000 ready immediately.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+[ML Engine] Heart risk model loaded successfully from C:\Users\Sayan Mridha\Desktop\project2advance\heart_risk_model.pkl
+INFO:     127.0.0.1:64253 - "GET /style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64254 - "GET /api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64255 - "GET /script.js HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /prescription [200] (0.0ms) - 127.0.0.1
+INFO:     127.0.0.1:64256 - "GET /prescription HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /timeline [401] (1.9ms) - 127.0.0.1
+INFO:     127.0.0.1:64257 - "GET /timeline HTTP/1.1" 401 Unauthorized
+INFO:health_risk_system:GET /prescription.html [200] (0.0ms) - 127.0.0.1
+INFO:     127.0.0.1:64258 - "GET /prescription.html HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /timeline.html [200] (14.06ms) - 127.0.0.1
+INFO:     127.0.0.1:64259 - "GET /timeline.html HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /style.css HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /api.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /script.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /script.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /api.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /common.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /style.css HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /assets/icons/logo.svg HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:POST /predict [200] (322.01ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "POST /predict HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /result.html [200] (4.0ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /result.html HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /result.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /login.html [200] (2.54ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /login.html HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /login.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:POST /auth/login [200] (320.63ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /auth/me [200] (5.54ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /index.html [200] (0.0ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /index.html HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /script.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /api.js HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /predict/history [200] (70.04ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /predict/history HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /api/prescriptions [200] (67.09ms) - 45.249.164.63
+INFO:health_risk_system:GET /auth/me [200] (55.07ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /api/prescriptions HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /allergies [200] (108.87ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /allergies HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /problems [200] (124.58ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /problems HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /prescription.html [200] (2.66ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /prescription.html HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /prescription.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /auth/me [200] (23.92ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /api/prescriptions [200] (22.52ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /api/prescriptions HTTP/1.1" 200 OK
+INFO:health_risk_system:GET / [200] (0.0ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET / HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /script.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /api.js HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /allergies [200] (1679.31ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /allergies HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /api/prescriptions [200] (1959.36ms) - 45.249.164.63
+INFO:health_risk_system:GET /auth/me [200] (1812.22ms) - 45.249.164.63
+INFO:health_risk_system:GET /problems [200] (1907.98ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /api/prescriptions HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /problems HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /predict/history [200] (2392.88ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET /predict/history HTTP/1.1" 200 OK
+INFO:     45.249.164.63:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET / [200] (2.28ms) - 45.249.164.63
+INFO:     45.249.164.63:0 - "GET / HTTP/1.1" 200 OK
+INFO:health_risk_system:GET / [200] (0.0ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET / HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /api.js HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /common.js HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /script.js HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /style.css HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /assets/icons/logo.svg HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /health HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /health HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /assets/icons/favicon.svg HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /prescription.html [200] (29.2ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /prescription.html HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /prescription.js HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /login.html [200] (2.03ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /login.html HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /login.js HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:POST /auth/register [201] (1874.7ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "POST /auth/register HTTP/1.1" 201 Created
+INFO:health_risk_system:POST /auth/login [200] (288.05ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /auth/me [200] (9.97ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /index.html [200] (0.55ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /index.html HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /allergies [200] (1.58ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /allergies HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /problems [200] (252.95ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /problems HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /predict/history [200] (261.43ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /predict/history HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /auth/me [200] (205.26ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /api/prescriptions [200] (210.54ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /api/prescriptions HTTP/1.1" 200 OK
+INFO:health_risk_system:POST /predict [200] (5893.76ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "POST /predict HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /result.html [200] (106.88ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /result.html HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /result.js HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /api.js HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /script.js HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /auth/me [200] (5.79ms) - 2401:4900:b7a0:859f:d87c:895f:7b83:f99e
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     2401:4900:b7a0:859f:d87c:895f:7b83:f99e:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET / [200] (2.16ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET / HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /api.js HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /style.css HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /script.js HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /common.js HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /health HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /health HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /assets/icons/favicon.svg HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /assets/icons/logo.svg HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /recommendation.html [200] (134.49ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /recommendation.html HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /recommendation.js HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /login.html [200] (2.08ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /login.html HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /login.js HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:POST /predict [200] (2261.37ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "POST /predict HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /result.html [200] (4.4ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /result.html HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /script.js HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /result.js HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /health HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /recommendation.js HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /api.js HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:POST /auth/login [200] (705.83ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /auth/me [200] (33.81ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /index.html [200] (2.01ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /index.html HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /health HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /api/prescriptions [200] (320.4ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /health HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /api/prescriptions HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /allergies [200] (269.39ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:health_risk_system:GET /predict/history [200] (267.85ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /allergies HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /predict/history HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /auth/me [200] (256.06ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:health_risk_system:GET /problems [200] (319.88ms) - 2409:40e0:2e:b3aa:c4c5:2681:356a:55b0
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /problems HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /health HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /health HTTP/1.1" 200 OK
+INFO:     2409:40e0:2e:b3aa:c4c5:2681:356a:55b0:0 - "GET /health HTTP/1.1" 200 OK
