@@ -578,6 +578,10 @@
       async getPersonalized() {
         return await request("/api/recommendations");
       },
+
+      async getExercisePlan() {
+        return await request("/api/recommendations/exercise");
+      },
     },
 
     medicines: {

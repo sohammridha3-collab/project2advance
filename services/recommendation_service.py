@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from database.models import User, Medicine, HealthAssessment, RecentProblem, Prescription, PrescriptionMedicine, Allergy
 from services.medicine_safety import screen_candidate_medicine
+from services.exercise_service import generate_personalized_exercise_plan
 
 def build_personalized_recommendations(
     patient_data: dict,
@@ -268,6 +269,16 @@ def build_personalized_recommendations(
         "current_medicines_considered": historical_medicines_list
     }
 
+    # 8. Personalized Exercise & Physical Activity Plan
+    exercise_plan = generate_personalized_exercise_plan(
+        patient_data=patient_data,
+        risk_level=risk_level,
+        confidence=confidence,
+        probabilities=probabilities,
+        recent_problems=recent_problems_list,
+        historical_medicines=historical_medicines_list
+    )
+
     return {
         "risk_level": risk_level,
         "confidence": round(float(confidence), 1),
@@ -279,9 +290,10 @@ def build_personalized_recommendations(
         "safety_warnings": safety_warnings,
         "emergency_warning": emergency_warning,
         "patient_context_used": patient_context_used,
+        "exercise_plan": exercise_plan,
         "disclaimer": (
-            "Clinical guidance and medicine screening are provided solely for educational reference and discussion "
-            "with a licensed healthcare professional. Never discontinue, start, or modify prescribed treatments without doctor consultation."
+            "Clinical guidance, medicine screening, and exercise recommendations are provided solely for educational reference "
+            "and discussion with a licensed healthcare professional. Never discontinue, start, or modify prescribed treatments or unguided workouts without doctor consultation."
         )
     }
 
@@ -302,7 +314,8 @@ def generate_recommendations(patient: dict, risk_level: str) -> Dict[str, Any]:
         "what_to_avoid": res["what_not_to_do"],
         "doctor": res["doctor_recommendation"]["reason"],
         "doctor_guidance": res["doctor_recommendation"]["reason"],
-        "emergency_warning": res["emergency_warning"]
+        "emergency_warning": res["emergency_warning"],
+        "exercise_plan": res.get("exercise_plan")
     }
 
 def generate_medications_guidance(patient: dict, risk_level: str) -> List[str]:

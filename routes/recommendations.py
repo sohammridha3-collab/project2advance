@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from schemas.schemas import (
-    HeartRiskInput, FullPersonalizedRecommendationResponse, RecommendationResponse
+    HeartRiskInput, FullPersonalizedRecommendationResponse, RecommendationResponse, PersonalizedExercisePlanOut
 )
 from services.recommendation_service import (
     build_personalized_recommendations, generate_recommendations
@@ -129,3 +129,21 @@ def generate_recommendations_from_input(
         user=optional_user,
         db=db
     )
+
+@router.get("/api/recommendations/exercise", response_model=PersonalizedExercisePlanOut)
+@router.get("/recommendations/exercise", response_model=PersonalizedExercisePlanOut, include_in_schema=False)
+def get_user_exercise_plan(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    """
+    Dedicated endpoint returning strictly the personalized exercise plan for the authenticated user.
+    """
+    full_recs = get_user_recommendations(db=db, user=user)
+    if not full_recs.get("exercise_plan"):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Personalized exercise plan could not be formulated. Complete a health assessment first."
+        )
+    return full_recs["exercise_plan"]
+

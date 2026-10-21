@@ -89,6 +89,33 @@ class ScreenedMedicineInfoOut(BaseModel):
     verified_database_record: bool = True
     interaction_screening_note: Optional[str] = None
 
+class ExerciseItemOut(BaseModel):
+    name: str
+    category: str
+    reason: str
+    instructions: str
+    duration: str
+    intensity: str
+    frequency: str
+    equipment: Optional[str] = "None (Standard footwear / comfortable clothing)"
+    precautions: str
+
+class ExerciseSafetyStatusOut(BaseModel):
+    is_exercise_cleared: bool
+    status_level: str  # "Cleared", "Cautionary_Supervised", "Contraindicated_Urgent"
+    headline: str
+    safety_message: str
+    trigger_factors: List[str] = []
+
+class PersonalizedExercisePlanOut(BaseModel):
+    safety_status: ExerciseSafetyStatusOut
+    risk_influence_explanation: str
+    activity_level_assumed: str
+    recommendation_band: str
+    exercises: List[ExerciseItemOut] = []
+    general_guidelines: List[str] = []
+    clinical_disclaimer: str
+
 class PatientContextSummary(BaseModel):
     recent_problems_count: int = 0
     previous_prescriptions_count: int = 0
@@ -108,6 +135,7 @@ class FullPersonalizedRecommendationResponse(BaseModel):
     safety_warnings: List[str] = []
     emergency_warning: Optional[str] = None
     patient_context_used: Optional[PatientContextSummary] = None
+    exercise_plan: Optional[PersonalizedExercisePlanOut] = None
     disclaimer: str
 
 class RecommendationResponse(BaseModel):
@@ -118,6 +146,7 @@ class RecommendationResponse(BaseModel):
     doctor: str
     doctor_guidance: str
     emergency_warning: Optional[str] = None
+    exercise_plan: Optional[Dict[str, Any]] = None
 
 class PredictionResponse(BaseModel):
     risk_level: str
@@ -127,6 +156,7 @@ class PredictionResponse(BaseModel):
     recommendations: Dict[str, Any]
     medications: List[str]
     prescription: List[str]
+    exercise_plan: Optional[Dict[str, Any]] = None
     # Present only when the prediction was saved for an authenticated user.
     assessment_id: Optional[int] = None
     assessed_at: Optional[datetime] = None

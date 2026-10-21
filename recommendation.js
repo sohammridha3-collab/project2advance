@@ -21,6 +21,12 @@
         return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
       case "history":
         return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>`;
+      case "activity":
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`;
+      case "heart":
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`;
+      case "compass":
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`;
       default:
         return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>`;
     }
@@ -261,6 +267,141 @@
       </section>
     `;
 
+    // 5b. Personalized Exercise & Physical Activity Plan
+    let exerciseSectionHtml = "";
+    if (data.exercise_plan) {
+      const ep = data.exercise_plan;
+      const safety = ep.safety_status || {};
+      const statusLevel = safety.status_level || "Cleared";
+
+      let safetyAlertHtml = "";
+      if (statusLevel === "Contraindicated_Urgent") {
+        const triggersHtml = (safety.trigger_factors || []).map(t =>
+          `<span class="exercise-trigger-tag">${svgIcon("alert")} ${esc(t)}</span>`
+        ).join("");
+        safetyAlertHtml = `
+          <div class="exercise-alert exercise-alert-danger reveal">
+            <div class="exercise-alert-header">
+              ${svgIcon("alert")} <span>${esc(safety.headline || "Exercise Restricted — Medical Clearance Required")}</span>
+            </div>
+            <p class="exercise-alert-text">${esc(safety.safety_message)}</p>
+            ${triggersHtml ? `<div class="exercise-triggers-wrap">${triggersHtml}</div>` : ""}
+          </div>
+        `;
+      } else if (statusLevel === "Cautionary_Supervised") {
+        const triggersHtml = (safety.trigger_factors || []).map(t =>
+          `<span class="exercise-trigger-tag caution">${svgIcon("alert")} ${esc(t)}</span>`
+        ).join("");
+        safetyAlertHtml = `
+          <div class="exercise-alert exercise-alert-caution reveal">
+            <div class="exercise-alert-header">
+              ${svgIcon("alert")} <span>${esc(safety.headline || "Conservative Activity Recommended")}</span>
+            </div>
+            <p class="exercise-alert-text">${esc(safety.safety_message)}</p>
+            ${triggersHtml ? `<div class="exercise-triggers-wrap">${triggersHtml}</div>` : ""}
+          </div>
+        `;
+      } else {
+        safetyAlertHtml = `
+          <div class="exercise-alert exercise-alert-cleared reveal">
+            <div class="exercise-alert-header">
+              ${svgIcon("check")} <span>${esc(safety.headline || "Graduated Exercise Cleared")}</span>
+            </div>
+            <p class="exercise-alert-text">${esc(safety.safety_message)}</p>
+          </div>
+        `;
+      }
+
+      const influenceCardHtml = `
+        <div class="exercise-influence-card reveal">
+          <div class="exercise-influence-header">
+            <span class="exercise-band-badge">${svgIcon("compass")} ${esc(ep.recommendation_band || "Customized Activity Plan")}</span>
+            <span style="font-size:.78rem;color:var(--mute)">Assumed Baseline: <strong>${esc(ep.activity_level_assumed || "Sedentary / Baseline")}</strong></span>
+          </div>
+          <p class="exercise-influence-body">${esc(ep.risk_influence_explanation)}</p>
+        </div>
+      `;
+
+      const exerciseCardsHtml = (ep.exercises || []).map((ex, idx) => `
+        <div class="glass exercise-card reveal" style="--i:${idx + 4}">
+          <div class="exercise-card-header">
+            <div>
+              <span class="exercise-category-chip">${esc(ex.category)}</span>
+              <h3 class="exercise-name">${esc(ex.name)}</h3>
+            </div>
+            <span class="exercise-intensity-badge">${esc(ex.intensity)}</span>
+          </div>
+
+          <div class="exercise-reason-box">
+            <strong>Clinical Rationale:</strong> ${esc(ex.reason)}
+          </div>
+
+          <div class="exercise-instructions-box">
+            <strong style="color:var(--text);display:block;margin-bottom:.2rem">Execution & Warm-Up:</strong>
+            ${esc(ex.instructions)}
+          </div>
+
+          <div class="exercise-metrics-strip">
+            <div class="exercise-metric-chip">
+              <span class="exercise-metric-label">Duration</span>
+              <span class="exercise-metric-val">${esc(ex.duration)}</span>
+            </div>
+            <div class="exercise-metric-chip">
+              <span class="exercise-metric-label">Frequency</span>
+              <span class="exercise-metric-val">${esc(ex.frequency)}</span>
+            </div>
+            <div class="exercise-metric-chip" style="grid-column:1/-1">
+              <span class="exercise-metric-label">Equipment</span>
+              <span class="exercise-metric-val">${esc(ex.equipment || "None")}</span>
+            </div>
+          </div>
+
+          <div class="exercise-precaution-callout">
+            <strong style="color:#fde68a">Precaution:</strong> ${esc(ex.precautions)}
+          </div>
+        </div>
+      `).join("");
+
+      const guidelinesHtml = (ep.general_guidelines && ep.general_guidelines.length) ? `
+        <div class="exercise-guidelines-box reveal">
+          <h4 style="margin:0;font-size:1rem;color:var(--text);display:flex;align-items:center;gap:.5rem">
+            ${svgIcon("shield")} <span>General Exercise & Recovery Guidelines</span>
+          </h4>
+          <ul class="exercise-guidelines-list">
+            ${ep.general_guidelines.map(g => `<li>${svgIcon("check")}<span>${esc(g)}</span></li>`).join("")}
+          </ul>
+        </div>
+      ` : "";
+
+      exerciseSectionHtml = `
+        <section class="exercise-section">
+          <div class="med-section-head">
+            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+              <span class="badge-ai-guidance">${svgIcon("activity")} Physical Activity Plan</span>
+              <span class="badge-verified-db">Clinical Safety Rules</span>
+            </div>
+            <h2 style="margin:0;font-size:1.35rem">Personalized Exercise Recommendations</h2>
+            <p style="color:var(--mute);margin:0;font-size:.9rem">
+              Custom-tailored physical activity regimen incorporating your ML risk category, ensemble vote share, vital markers, and clinical symptoms.
+            </p>
+          </div>
+
+          ${safetyAlertHtml}
+          ${influenceCardHtml}
+          
+          <div class="exercise-cards-grid">
+            ${exerciseCardsHtml || `<div class="glass" style="padding:1.5rem;grid-column:1/-1;text-align:center;color:var(--mute)">No active exercise recommendations generated.</div>`}
+          </div>
+
+          ${guidelinesHtml}
+
+          <div style="font-size:.8rem;color:var(--mute);line-height:1.5;padding:.5rem 0">
+            <em>${esc(ep.clinical_disclaimer || "Disclaimer: Always consult your physician before initiating unguided workouts.")}</em>
+          </div>
+        </section>
+      `;
+    }
+
     // 6. Medicine Information & Safety Screening Layer
     let safetyAlertBoxHtml = "";
     if (safetyWarnings.length > 0) {
@@ -374,6 +515,7 @@
         ${riskSummaryHtml}
         ${doctorRecHtml}
         ${guidanceHtml}
+        ${exerciseSectionHtml}
         ${medicineSectionHtml}
 
         <div class="glass" style="padding:1rem 1.4rem;border-radius:12px;font-size:.84rem;color:var(--mute);line-height:1.55;display:flex;align-items:center;gap:.7rem;border-color:rgba(94,224,208,.2);margin-top:.8rem">
@@ -460,7 +602,8 @@
         },
         medicine_information: [],
         safety_warnings: [],
-        emergency_warning: legacy.emergency_warning || null
+        emergency_warning: legacy.emergency_warning || null,
+        exercise_plan: storedData.result.exercise_plan || legacy.exercise_plan || null
       }, storedPatient);
       return;
     }

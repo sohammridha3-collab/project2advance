@@ -75,6 +75,7 @@ def run_prediction(
             "recommendations": rec_data,
             "medications": meds_data,
             "prescription": meds_data,
+            "exercise_plan": rec_data.get("exercise_plan"),
             "assessment_id": assessment_id,
             "assessed_at": assessed_at
         }
