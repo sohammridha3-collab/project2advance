@@ -2,8 +2,9 @@ import httpx
 import time
 import json
 import io
+import os
 
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = os.getenv("TEST_BASE_URL", "http://127.0.0.1:8000")
 
 def run_live_e2e_journey():
     print("=" * 65)
