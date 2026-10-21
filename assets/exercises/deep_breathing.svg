@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#081e28"/>
+      <stop offset="100%" stop-color="#060c19"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="16" fill="url(#bg4)" stroke="rgba(56,189,248,0.2)" stroke-width="1.5"/>
+  <!-- Concentric breathing pulse rings -->
+  <circle cx="160" cy="85" r="55" fill="none" stroke="rgba(56,189,248,0.15)" stroke-width="2" stroke-dasharray="6 4"/>
+  <circle cx="160" cy="85" r="40" fill="none" stroke="rgba(56,189,248,0.25)" stroke-width="1.5"/>
+  <!-- Figure: seated meditation/breathing -->
+  <circle cx="160" cy="56" r="9" fill="#38bdf8"/>
+  <path d="M160 67 L160 106 L140 125 L180 125 Z" fill="rgba(56,189,248,0.2)" stroke="#38bdf8" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M160 76 L142 94 L152 108 M160 76 L178 94 L168 108" stroke="#7dd3fc" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Lungs icon accent -->
+  <path d="M154 84 C150 82 146 86 146 91 C146 96 150 98 154 96 M166 84 C170 82 174 86 174 91 C174 96 170 98 166 96" stroke="#00d4aa" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <text x="20" y="28" font-family="sans-serif" font-size="12" font-weight="600" fill="#38bdf8" letter-spacing="0.5">BREATHING &amp; MOBILITY</text>
+  <text x="20" y="164" font-family="sans-serif" font-size="10" fill="#94a3b8">Stress Relief - Calms Blood Pressure</text>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg15" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1e28"/>
+      <stop offset="100%" stop-color="#060c19"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="16" fill="url(#bg15)" stroke="rgba(56,189,248,0.2)" stroke-width="1.5"/>
+  <!-- Recumbent bike chair and pedal -->
+  <path d="M110 95 L110 135 L175 135 M205 135 A15 15 0 1 0 205 105 A15 15 0 1 0 205 135" stroke="rgba(148,163,184,0.5)" stroke-width="3" fill="none"/>
+  <!-- Seated rider -->
+  <circle cx="116" cy="75" r="9" fill="#38bdf8"/>
+  <path d="M116 86 L124 116 L175 110 L195 120" stroke="#00d4aa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M120 96 L145 105" stroke="#7dd3fc" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <text x="20" y="28" font-family="sans-serif" font-size="12" font-weight="600" fill="#00d4aa" letter-spacing="0.5">RECUMBENT STATIONARY BIKE</text>
+  <text x="20" y="164" font-family="sans-serif" font-size="10" fill="#94a3b8">Zero Knee Pound - Gentle Joint Aerobics</text>
+</svg>

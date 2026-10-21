@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg12" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181a24"/>
+      <stop offset="100%" stop-color="#060c19"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="16" fill="url(#bg12)" stroke="rgba(245,158,11,0.2)" stroke-width="1.5"/>
+  <!-- Figure standing with weights -->
+  <circle cx="160" cy="44" r="10" fill="#f59e0b"/>
+  <path d="M160 56 L160 105 L148 144 M160 105 L172 144" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- Arms curling dumbbells -->
+  <path d="M160 70 L140 92 L142 74 M160 70 L180 92 L178 74" stroke="#fef3c7" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <!-- Dumbbells -->
+  <rect x="136" y="70" width="12" height="6" rx="2" fill="#f59e0b"/>
+  <rect x="172" y="70" width="12" height="6" rx="2" fill="#f59e0b"/>
+  <text x="20" y="28" font-family="sans-serif" font-size="12" font-weight="600" fill="#f59e0b" letter-spacing="0.5">DUMBBELL / BAND STRENGTH</text>
+  <text x="20" y="164" font-family="sans-serif" font-size="10" fill="#94a3b8">Progressive Resistance - Muscle Tone</text>
+</svg>

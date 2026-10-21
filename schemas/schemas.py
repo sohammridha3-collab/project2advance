@@ -99,6 +99,11 @@ class ExerciseItemOut(BaseModel):
     frequency: str
     equipment: Optional[str] = "None (Standard footwear / comfortable clothing)"
     precautions: str
+    image_url: Optional[str] = None
+    image_alt: Optional[str] = None
+    sets: Optional[str] = None
+    rest: Optional[str] = None
+    safety_tip: Optional[str] = None
 
 class ExerciseSafetyStatusOut(BaseModel):
     is_exercise_cleared: bool
@@ -107,11 +112,26 @@ class ExerciseSafetyStatusOut(BaseModel):
     safety_message: str
     trigger_factors: List[str] = []
 
+class ExercisePlanCategoryOut(BaseModel):
+    id: str  # "low", "medium", "advanced"
+    title: str  # "Low Exercise Plan", "Medium Exercise Plan", "Fit & Advanced Plan"
+    tagline: str
+    target_audience: str
+    is_recommended: bool = False
+    badge: Optional[str] = None  # "⭐ Recommended for You"
+    why_recommended: Optional[str] = None
+    safety_advisory: Optional[str] = None
+    exercises: List[ExerciseItemOut] = []
+
 class PersonalizedExercisePlanOut(BaseModel):
     safety_status: ExerciseSafetyStatusOut
     risk_influence_explanation: str
     activity_level_assumed: str
     recommendation_band: str
+    recommended_plan_id: str = "low"  # "low", "medium", "advanced", or "restricted"
+    recommended_plan_title: str = "Low Exercise Plan"
+    recommended_reason: str = ""
+    plans: Dict[str, ExercisePlanCategoryOut] = {}
     exercises: List[ExerciseItemOut] = []
     general_guidelines: List[str] = []
     clinical_disclaimer: str

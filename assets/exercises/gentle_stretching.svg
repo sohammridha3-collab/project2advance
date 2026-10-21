@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e172a"/>
+      <stop offset="100%" stop-color="#060c19"/>
+    </linearGradient>
+    <linearGradient id="purpGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="16" fill="url(#bg2)" stroke="rgba(129,140,248,0.2)" stroke-width="1.5"/>
+  <circle cx="160" cy="85" r="60" fill="rgba(129,140,248,0.06)"/>
+  <!-- Figure: Standing stretch with arms up -->
+  <circle cx="160" cy="44" r="10" fill="#818cf8"/>
+  <path d="M160 56 L160 102 L148 144 M160 102 L172 144" stroke="url(#purpGrad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M160 68 L142 42 L146 28 M160 68 L178 42 L174 28" stroke="#a855f7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Stretch arc -->
+  <path d="M136 28 Q160 18 184 28" stroke="#818cf8" stroke-width="2" stroke-dasharray="3 3" fill="none"/>
+  <text x="20" y="28" font-family="sans-serif" font-size="12" font-weight="600" fill="#a855f7" letter-spacing="0.5">GENTLE STRETCHING</text>
+  <text x="20" y="164" font-family="sans-serif" font-size="10" fill="#94a3b8">Mobility - Relieves Muscle Tightness</text>
+</svg>

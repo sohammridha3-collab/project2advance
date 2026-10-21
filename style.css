@@ -3269,3 +3269,217 @@ html.js .reveal.in{opacity:1;transform:none;transition:opacity .6s var(--ease),t
   animation: spin 0.8s linear infinite;
 }
 
+/* ============================================================
+   3-TIER EXERCISE PLANS & TAB SWITCHER STYLES
+   ============================================================ */
+
+.exercise-plan-tabs {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1.25rem 0 1rem;
+  flex-wrap: wrap;
+}
+
+.exercise-plan-tab {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.9rem 1.15rem;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.exercise-plan-tab:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(56, 189, 248, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -6px rgba(14, 165, 233, 0.2);
+}
+
+.exercise-plan-tab.active {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(94, 224, 208, 0.12));
+  border-color: var(--aqua);
+  color: #f8fafc;
+  box-shadow: 0 0 20px -4px rgba(94, 224, 208, 0.3);
+}
+
+.exercise-plan-tab-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.exercise-plan-tab.active .exercise-plan-tab-title {
+  color: var(--aqua);
+}
+
+.exercise-plan-tab-sub {
+  font-size: 0.78rem;
+  color: var(--mute);
+  margin-top: 0.25rem;
+  line-height: 1.35;
+}
+
+.plan-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(234, 179, 8, 0.2));
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #fde68a;
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.02em;
+}
+
+.exercise-plan-banner {
+  padding: 1.15rem 1.4rem;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  margin-bottom: 1.25rem;
+}
+
+.exercise-plan-banner-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.exercise-plan-banner-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.exercise-plan-banner-tagline {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin: 0.2rem 0 0.5rem;
+}
+
+.exercise-plan-banner-why {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: #cbd5e1;
+  background: rgba(2, 6, 23, 0.4);
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--aqua);
+}
+
+.exercise-plan-advisory {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fef08a;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.exercise-card-media {
+  width: 100%;
+  height: 180px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7));
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.exercise-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.exercise-card:hover .exercise-card-img {
+  transform: scale(1.04);
+}
+
+.exercise-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.exercise-metric-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.exercise-metric-cell-lbl {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.exercise-metric-cell-val {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.35;
+}
+
+.exercise-instructions-card {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #f1f5f9;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border-left: 3px solid #38bdf8;
+}
+
+.exercise-safety-tip-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #a7f3d0;
+}
+
+
