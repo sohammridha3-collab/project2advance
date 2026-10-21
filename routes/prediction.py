@@ -35,7 +35,12 @@ def run_prediction(
 
         # Recommendation and safety guidance layer
         patient_dict = data.model_dump()
-        rec_data = generate_recommendations(patient_dict, ml_result["risk_level"])
+        rec_data = generate_recommendations(
+            patient=patient_dict,
+            risk_level=ml_result["risk_level"],
+            confidence=ml_result["confidence"],
+            probabilities=ml_result["probabilities"]
+        )
         meds_data = generate_medications_guidance(patient_dict, ml_result["risk_level"])
 
         # Auto-save to health_assessments if user is authenticated

@@ -18,6 +18,28 @@
   };
   const hr = p.heart_rate, sbp = p.systolic_blood_pressure, o2 = p.oxygen_saturation, pain = p.chest_pain_severity;
 
+  const ep = r.exercise_plan || (r.recommendations ? r.recommendations.exercise_plan : null);
+  let exercisePreviewHtml = "";
+  if (ep) {
+    const safety = ep.safety_status || {};
+    const badgeCls = safety.status_level === "Contraindicated_Urgent" ? "crit" : (safety.status_level === "Cautionary_Supervised" ? "mod" : "low");
+    exercisePreviewHtml = `
+      <div class="glass tilt reveal" style="--i:4;margin-top:1.2rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem">
+          <h3 style="margin:0;display:flex;align-items:center;gap:.5rem">
+            <span>🏃</span> <span>Personalized Physical Activity &amp; Exercise Plan</span>
+          </h3>
+          <span class="pill ${badgeCls}">${esc(ep.recommendation_band || "Customized Activity Plan")}</span>
+        </div>
+        <p style="color:var(--text);font-size:.9rem;line-height:1.55;margin:0 0 .8rem">${esc(safety.safety_message)}</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;border-top:1px solid var(--edge);padding-top:.8rem">
+          <span style="font-size:.82rem;color:var(--mute)">Status: <strong>${esc(safety.headline)}</strong></span>
+          <a class="btn p btn-sm" href="recommendation.html#exercise-section">View Full Exercise Plan &rarr;</a>
+        </div>
+      </div>
+    `;
+  }
+
   app.innerHTML = `
   <div class="grid2 risk-${k}">
     <div class="glass tilt reveal"><div class="ringbox">
@@ -37,7 +59,8 @@
   <div class="glass tilt reveal"><h3>Prediction summary</h3>
     <div class="kv" style="margin:.8rem 0"><div>Risk level<b>${esc(level)}</b></div><div>Confidence<b>${conf.toFixed(1)}%</b></div>
       <div>Gender<b>${esc(p.gender)}</b></div><div>Smoker status<b>${esc(p.smoker_status)}</b></div><div>Diabetes history<b>${esc(p.diabetes_history)}</b></div></div>
-    <p>This is an AI estimate, not a diagnosis. Review the recommendations next.</p></div>
-  <div class="pager noprint" style="flex-wrap:wrap;gap:.6rem"><a class="btn" href="index.html">Back to Form</a><a class="btn" href="timeline.html">Timeline</a><a class="btn" href="briefing.html">Doctor Briefing</a><a class="btn p" href="recommendation.html">Next: Guidance</a></div>`;
+    <p>This is an AI estimate, not a diagnosis. Review your clinical recommendations and custom exercise plan next.</p></div>
+  ${exercisePreviewHtml}
+  <div class="pager noprint" style="flex-wrap:wrap;gap:.6rem;margin-top:1.5rem"><a class="btn" href="index.html">Back to Form</a><a class="btn" href="timeline.html">Timeline</a><a class="btn" href="briefing.html">Doctor Briefing</a><a class="btn p" href="recommendation.html#exercise-section">Next: Guidance &amp; Exercise Plan &rarr;</a></div>`;
   observe(app); countAll(app);
 })();

@@ -147,3 +147,28 @@ def get_user_exercise_plan(
         )
     return full_recs["exercise_plan"]
 
+@router.post("/api/recommendations/exercise", response_model=PersonalizedExercisePlanOut)
+@router.post("/recommendations/exercise", response_model=PersonalizedExercisePlanOut, include_in_schema=False)
+def generate_exercise_plan_from_input(
+    patient: HeartRiskInput,
+    risk_level: Optional[str] = Query(None, description="Optional risk tier override; if omitted, computed via ML"),
+    db: Session = Depends(get_db),
+    optional_user: Optional[User] = Depends(get_optional_current_user)
+):
+    """
+    Dedicated endpoint returning strictly the personalized exercise plan computed directly from given patient inputs.
+    """
+    full_recs = generate_recommendations_from_input(
+        patient=patient,
+        risk_level=risk_level,
+        db=db,
+        optional_user=optional_user
+    )
+    if not full_recs.get("exercise_plan"):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Personalized exercise plan could not be formulated from given inputs."
+        )
+    return full_recs["exercise_plan"]
+
+

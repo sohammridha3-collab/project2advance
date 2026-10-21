@@ -298,12 +298,17 @@ def build_personalized_recommendations(
     }
 
 # Backward-compatible wrapper
-def generate_recommendations(patient: dict, risk_level: str) -> Dict[str, Any]:
+def generate_recommendations(
+    patient: dict,
+    risk_level: str,
+    confidence: float = 100.0,
+    probabilities: Optional[Dict[str, float]] = None
+) -> Dict[str, Any]:
     res = build_personalized_recommendations(
         patient_data=patient,
         risk_level=risk_level,
-        confidence=100.0,
-        probabilities={},
+        confidence=confidence or 100.0,
+        probabilities=probabilities or {},
         user=None,
         db=None
     )

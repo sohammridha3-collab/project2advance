@@ -8,7 +8,7 @@
   const currentPath = window.location.pathname.split("/").pop() || "index.html";
   const isAuthPage = currentPath === "login.html";
   const isAdminPage = currentPath === "admin.html";
-  const isPublicPage = ["index.html", "result.html", "login.html", "share.html", ""].includes(currentPath);
+  const isPublicPage = ["index.html", "result.html", "recommendation.html", "login.html", "share.html", ""].includes(currentPath);
 
   // ROUTE GUARD: Ensure login is required only for private medical record pages.
   if (!auth.isAuthenticated() && !isPublicPage && !isAdminPage) {

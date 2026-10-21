@@ -212,26 +212,21 @@ def generate_personalized_exercise_plan(
     is_on_anticoagulants = any("warfarin" in m.lower() or "clopidogrel" in m.lower() or "aspirin" in m.lower() for m in meds_list)
 
     if not is_cleared:
-        # Exercises are SUPPRESSED in favor of restorative non-straining actions
-        exercises.append({
-            "name": "Restorative Diaphragmatic Breathing & Postural Rest",
-            "category": "Restorative / Non-Straining",
-            "reason": "Indicated during symptom stabilization to maintain oxygenation without imposing myocardial workload.",
-            "instructions": "Sit comfortably in an upright, supported chair. Inhale slowly through your nose for 4 seconds, feeling your abdomen expand. Exhale gently through pursed lips for 6 seconds. Avoid any breath-holding.",
-            "duration": "5 to 10 minutes as tolerated",
-            "intensity": "Very Light / Restful (RPE 1/10)",
-            "frequency": "As needed during rest",
-            "equipment": "Comfortable chair, quiet environment",
-            "precautions": "Do not attempt if experiencing acute chest tightness, severe dizziness, or breathlessness; seek emergency medical care instead."
-        })
+        # Exercises are STRICTLY SUPPRESSED in the presence of acute warning signs
+        exercises = []
         general_guidelines.extend([
             "Cease all structured cardiovascular workouts, running, resistance lifting, and sports immediately.",
             "Schedule an urgent clinical evaluation with your primary physician or cardiologist.",
             "If chest pain radiates to your arm, neck, or jaw, or if you feel dizzy or faint, call emergency services (e.g. 911 / 112) immediately.",
-            "Do not attempt 'working through' pain or breathlessness."
+            "Do not attempt 'working through' pain or breathlessness under any circumstances."
         ])
     else:
         # Tailored exercises based on band and patient factors
+        if "high" in risk_level.lower():
+            general_guidelines.append(
+                "Clinical Pre-Participation Notice: Because your assessment returned a 'High Risk' classification, formal physician clearance and exercise stress testing (e.g., treadmill ECG / CPET) are strongly advised prior to initiating any structured workout routine beyond gentle walking."
+            )
+
         if status_level == "Cautionary_Supervised":
             # --- Intermediate / Cautionary Exercise Selection ---
             if has_joint_complaint:

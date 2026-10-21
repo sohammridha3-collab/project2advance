@@ -147,11 +147,10 @@ def run_tests():
         assert ep4["safety_status"]["is_exercise_cleared"] is False
         assert ep4["safety_status"]["status_level"] == "Contraindicated_Urgent"
         assert any("chest pain" in t.lower() for t in ep4["safety_status"]["trigger_factors"])
-        # Confirm workouts are suppressed, only restorative breathing present
-        assert len(ep4["exercises"]) == 1
-        assert "Restorative" in ep4["exercises"][0]["category"]
+        # Confirm workouts are strictly suppressed (0 workout prescriptions)
+        assert len(ep4["exercises"]) == 0, f"Expected 0 routine exercises when contraindicated, got {len(ep4['exercises'])}"
         print(f"  ✓ Safety Layer Active: is_exercise_cleared={ep4['safety_status']['is_exercise_cleared']}")
-        print(f"  ✓ Routine workouts suppressed: True")
+        print(f"  ✓ Routine workouts strictly suppressed: True (0 exercises)")
         print(f"  ✓ Headline: {ep4['safety_status']['headline']}")
 
         # -------------------------------------------------------------
@@ -269,8 +268,19 @@ def run_tests():
         assert r10_unauth.status_code == 401
         print("  ✓ Protected exercise endpoint correctly rejects unauthenticated requests (HTTP 401)")
 
+        # -------------------------------------------------------------
+        # TEST 11: Direct Input Exercise Plan via POST /api/recommendations/exercise
+        # -------------------------------------------------------------
+        print("\n[Test 11] Testing Direct Input Exercise Evaluation (POST /api/recommendations/exercise)...")
+        r11_direct = client.post("/api/recommendations/exercise", json=low_input)
+        assert r11_direct.status_code == 200, f"POST /api/recommendations/exercise failed: {r11_direct.text}"
+        ep11 = r11_direct.json()
+        assert ep11["safety_status"]["is_exercise_cleared"] is True
+        assert len(ep11["exercises"]) >= 3
+        print(f"  ✓ Direct input endpoint returned {len(ep11['exercises'])} exercises for low-risk inputs")
+
     print("\n" + "=" * 70)
-    print("ALL 10 EXERCISE RECOMMENDATION & SAFETY TESTS PASSED 100%!")
+    print("ALL 11 EXERCISE RECOMMENDATION & SAFETY TESTS PASSED 100%!")
     print("=" * 70)
 
 if __name__ == "__main__":

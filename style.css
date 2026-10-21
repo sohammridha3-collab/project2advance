@@ -3109,5 +3109,57 @@ html.js .reveal.in{opacity:1;transform:none;transition:opacity .6s var(--ease),t
   margin-top: 0.15rem;
 }
 
+/* Recommendation Page Section Navigation Bar */
+.rec-section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.75rem 0.25rem;
+  margin: 0.5rem 0 1.25rem;
+  border-bottom: 1px solid var(--edge);
+}
 
+.rec-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--edge);
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
+.rec-nav-pill:hover {
+  color: #f8fafc;
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
+  transform: translateY(-1px);
+}
+
+.rec-nav-pill.active-pill {
+  color: #38bdf8;
+  background: rgba(14, 165, 233, 0.18);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 0 16px -4px rgba(14, 165, 233, 0.4);
+}
+
+/* Contraindicated Exercise Suppression Box */
+.exercise-suppressed-box {
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  box-shadow: 0 8px 32px -8px rgba(239, 68, 68, 0.2);
+  margin-top: 0.5rem;
+}
+
+.exercise-suppressed-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}

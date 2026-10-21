@@ -579,7 +579,14 @@
         return await request("/api/recommendations");
       },
 
-      async getExercisePlan() {
+      async getExercisePlan(patient = null, risk_level = "") {
+        if (patient) {
+          const query = risk_level ? `?risk_level=${encodeURIComponent(risk_level)}` : "";
+          return await request(`/api/recommendations/exercise${query}`, {
+            method: "POST",
+            body: JSON.stringify(patient),
+          });
+        }
         return await request("/api/recommendations/exercise");
       },
     },

@@ -64,26 +64,41 @@
 
   // Render Empty State
   function renderEmpty() {
-    app.innerHTML = `
-      <div class="glass rec-empty-box reveal">
-        <span class="chip-ico" style="margin:0 auto 1rem;color:var(--aqua)">${svgIcon("pill")}</span>
-        <h3 style="margin:0 0 .6rem">No Health Assessment Found</h3>
-        <p style="color:var(--mute);margin:0 0 1.5rem">To generate personalized recommendations and run medicine safety checks, please complete a health risk analysis first.</p>
-        <div style="display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap">
-          <a class="btn p" href="index.html">Start Health Analysis</a>
-          <button id="open-login-btn" class="btn" type="button">Sign In to Load Profile</button>
+    const user = window.HR_API ? window.HR_API.auth.getUser() : null;
+    if (user) {
+      app.innerHTML = `
+        <div class="glass rec-empty-box reveal">
+          <span class="chip-ico" style="margin:0 auto 1rem;color:var(--aqua)">${svgIcon("activity")}</span>
+          <h3 style="margin:0 0 .6rem">No Health Assessment on File</h3>
+          <p style="color:var(--mute);margin:0 0 1.5rem">Welcome, <strong>${esc(user.name || "Patient")}</strong>! You haven't recorded a cardiovascular risk assessment yet. Submit your vital readings to generate your personalized clinical guidance, medicine screening, and tailored exercise plan.</p>
+          <div style="display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap">
+            <a class="btn p" href="index.html#analysis">Run Health Assessment Now &rarr;</a>
+            <a class="btn" href="index.html">Dashboard Home</a>
+          </div>
         </div>
-      </div>
-    `;
-    observe(app);
-    const loginBtn = document.getElementById("open-login-btn");
-    if (loginBtn) {
-      loginBtn.addEventListener("click", () => {
-        if (window.HR_COMMON && window.HR_COMMON.openAuthModal) {
-          window.HR_COMMON.openAuthModal("login", () => loadRecommendations());
-        }
-      });
+      `;
+    } else {
+      app.innerHTML = `
+        <div class="glass rec-empty-box reveal">
+          <span class="chip-ico" style="margin:0 auto 1rem;color:var(--aqua)">${svgIcon("pill")}</span>
+          <h3 style="margin:0 0 .6rem">No Health Assessment Found</h3>
+          <p style="color:var(--mute);margin:0 0 1.5rem">To generate personalized recommendations, custom exercise plans, and run medicine safety checks, please complete a health risk analysis first.</p>
+          <div style="display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap">
+            <a class="btn p" href="index.html#analysis">Start Health Analysis</a>
+            <button id="open-login-btn" class="btn" type="button">Sign In to Load Profile</button>
+          </div>
+        </div>
+      `;
+      const loginBtn = document.getElementById("open-login-btn");
+      if (loginBtn) {
+        loginBtn.addEventListener("click", () => {
+          if (window.HR_COMMON && window.HR_COMMON.openAuthModal) {
+            window.HR_COMMON.openAuthModal("login", () => loadRecommendations());
+          }
+        });
+      }
     }
+    observe(app);
   }
 
   // Main Render Function for Complete Recommendation Response
@@ -373,8 +388,29 @@
         </div>
       ` : "";
 
+      let exercisesContentHtml = "";
+      if (statusLevel === "Contraindicated_Urgent" || !safety.is_exercise_cleared) {
+        exercisesContentHtml = `
+          <div class="glass exercise-suppressed-box reveal">
+            <div class="exercise-suppressed-title">
+              <span class="chip-ico" style="margin:0;color:var(--crit)">${svgIcon("ban")}</span>
+              <h3 style="margin:0;color:#fca5a5;font-size:1.15rem">Routine Workouts Strictly Suppressed by Safety Layer</h3>
+            </div>
+            <p style="margin:.6rem 0 0;font-size:.92rem;color:#fecaca;line-height:1.6">
+              Because acute clinical warning signs, severe pain, hypoxia, or hypertensive thresholds were identified, all routine exercise prescriptions and physical conditioning programs are strictly withheld. Unsupervised physical exertion under these physiological conditions carries significant cardiovascular risk. Please consult your physician or emergency healthcare provider for diagnostic clearance before initiating physical activity.
+            </p>
+          </div>
+        `;
+      } else {
+        exercisesContentHtml = `
+          <div class="exercise-cards-grid">
+            ${exerciseCardsHtml || `<div class="glass" style="padding:1.5rem;grid-column:1/-1;text-align:center;color:var(--mute)">No active exercise recommendations generated.</div>`}
+          </div>
+        `;
+      }
+
       exerciseSectionHtml = `
-        <section class="exercise-section">
+        <section class="exercise-section" id="exercise-section">
           <div class="med-section-head">
             <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
               <span class="badge-ai-guidance">${svgIcon("activity")} Physical Activity Plan</span>
@@ -389,9 +425,7 @@
           ${safetyAlertHtml}
           ${influenceCardHtml}
           
-          <div class="exercise-cards-grid">
-            ${exerciseCardsHtml || `<div class="glass" style="padding:1.5rem;grid-column:1/-1;text-align:center;color:var(--mute)">No active exercise recommendations generated.</div>`}
-          </div>
+          ${exercisesContentHtml}
 
           ${guidelinesHtml}
 
@@ -508,15 +542,26 @@
     `;
 
     // 7. Assemble Full Page
+    const navPillsHtml = `
+      <nav class="rec-section-nav noprint reveal" aria-label="Guidance Sections">
+        <a href="#risk-summary-section" class="rec-nav-pill">📊 Risk Summary</a>
+        <a href="#doctor-rec-section" class="rec-nav-pill">🩺 Doctor Consultation</a>
+        <a href="#guidance-section" class="rec-nav-pill">🛡️ Daily Guidance</a>
+        <a href="#exercise-section" class="rec-nav-pill active-pill">🏃 Exercise Plan</a>
+        <a href="#medicine-section" class="rec-nav-pill">💊 Medicine Safety</a>
+      </nav>
+    `;
+
     app.innerHTML = `
       <div class="rec-page-wrap">
         ${emergencyHtml}
         ${contextBarHtml}
-        ${riskSummaryHtml}
-        ${doctorRecHtml}
-        ${guidanceHtml}
+        ${navPillsHtml}
+        <div id="risk-summary-section">${riskSummaryHtml}</div>
+        <div id="doctor-rec-section">${doctorRecHtml}</div>
+        <div id="guidance-section">${guidanceHtml}</div>
         ${exerciseSectionHtml}
-        ${medicineSectionHtml}
+        <div id="medicine-section">${medicineSectionHtml}</div>
 
         <div class="glass" style="padding:1rem 1.4rem;border-radius:12px;font-size:.84rem;color:var(--mute);line-height:1.55;display:flex;align-items:center;gap:.7rem;border-color:rgba(94,224,208,.2);margin-top:.8rem">
           <span style="color:var(--aqua);font-size:1.2rem;flex-shrink:0">🛡️</span>
