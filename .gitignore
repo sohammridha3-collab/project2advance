@@ -8,3 +8,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .DS_Store
+*.log
+backend.log
+health_risk.db-shm
+health_risk.db-wal

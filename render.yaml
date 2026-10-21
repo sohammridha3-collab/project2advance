@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: healthbridge-ai
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: git lfs install && git lfs pull && pip install --no-cache-dir -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: DATABASE_URL
+        sync: false
+        # Can connect to a free PostgreSQL database (e.g. from Supabase, Neon, or Render Postgres)
+        # Default fallback to sqlite:///./health_risk.db if left blank
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 1440
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: UPLOAD_DIRECTORY
+        value: uploads/prescriptions
+      - key: GIT_LFS_SKIP_SMUDGE
+        value: "0"

@@ -1,0 +1,15 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+__pycache__
+*.py[cod]
+*$py.class
+*.log
+backend.log
+health_risk.db-shm
+health_risk.db-wal
+.pytest_cache/
+.vscode/
+.idea/

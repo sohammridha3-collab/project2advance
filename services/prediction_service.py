@@ -24,11 +24,25 @@ def _load_model_worker(model_path: Optional[Path] = None):
         _model_ready_event.set()
         raise FileNotFoundError(f"Model file not found at {path}")
 
+    # Verify file is not an unsmudged Git LFS pointer or empty file
+    file_size = path.stat().st_size
+    if file_size < 2000:
+        header = path.read_bytes()[:100]
+        if b"git-lfs" in header or b"oid sha256" in header:
+            _model_ready_event.set()
+            err_msg = (
+                f"[ML Engine] CRITICAL: '{path.name}' is an unresolved Git LFS pointer ({file_size} bytes). "
+                "The real binary model (~115MB) was not downloaded. "
+                "In production build, run 'git lfs install && git lfs pull' or provide the full model asset."
+            )
+            print(err_msg)
+            raise RuntimeError(err_msg)
+
     try:
         loaded = joblib.load(path)
         with _model_lock:
             _model = loaded
-        print(f"[ML Engine] Heart risk model loaded successfully from {path}")
+        print(f"[ML Engine] Heart risk model loaded successfully from {path} ({file_size / (1024*1024):.2f} MB)")
     except Exception as e:
         print(f"[ML Engine] ERROR loading model from {path}: {e}")
         raise e
