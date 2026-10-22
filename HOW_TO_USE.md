@@ -85,8 +85,8 @@ Here is how you use each part of the application:
 
 ---
 
-### Feature 2: AI Heart Risk Prediction (`index.html`)
-1. On the home page, scroll to the **"Heart Health Assessment"** form.
+### Feature 2: AI Health Risk Prediction (`index.html`)
+1. On the home page, scroll to the **"Health Risk Assessment"** form.
 2. Fill in your numbers:
    - **Age**: (e.g., `45` to `65`)
    - **Gender**: Select Male or Female.
@@ -225,7 +225,7 @@ Here is a simple look at the technical architecture:
 
 | File Name | Purpose |
 | :--- | :--- |
-| `index.html` & `script.js` | Home page & AI Heart Risk Assessment form. |
+| `index.html` & `script.js` | Home page & AI Health Risk Assessment form. |
 | `timeline.html` & `timeline.js` | Unified chronological health timeline. |
 | `prescription.html` & `prescription.js` | Prescription Vault with camera and file upload. |
 | `briefing.html` & `briefing.js` | Doctor visit briefing builder and secure sharing. |
