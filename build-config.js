@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const targetFile = path.join(__dirname, 'config.js');
-const backendUrl = process.env.BACKEND_URL || process.env.HEALTHBRIDGE_API_URL || 'https://healthbridge-ai.onrender.com';
+const backendUrl = process.env.BACKEND_URL || process.env.HEALTHBRIDGE_API_URL || 'https://project2advance-2.onrender.com';
 
 const sanitizedUrl = backendUrl.replace(/\/+$/, '');
 

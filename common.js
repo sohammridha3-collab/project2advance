@@ -428,7 +428,7 @@
             Target Backend API URL
           </label>
           <div style="display:flex;gap:0.5rem">
-            <input type="text" id="custom-backend-input" value="${esc(currentBase)}" placeholder="https://healthbridge-ai.onrender.com" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--edge);border-radius:6px;padding:0.4rem 0.8rem;color:#fff;font-family:monospace;font-size:0.88rem" />
+            <input type="text" id="custom-backend-input" value="${esc(currentBase)}" placeholder="https://project2advance-2.onrender.com" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--edge);border-radius:6px;padding:0.4rem 0.8rem;color:#fff;font-family:monospace;font-size:0.88rem" />
             <button id="save-custom-backend-btn" type="button" class="btn p" style="padding:0.4rem 0.9rem;font-size:0.85rem">Save & Connect</button>
           </div>
           <p style="font-size:0.78rem;color:var(--mute);margin:0.4rem 0 0 0">

@@ -43,8 +43,8 @@
         if (isLocalhost && port && port !== "8000") {
           return "http://127.0.0.1:8000";
         }
-        // If accessed directly on the backend web service (e.g. https://healthbridge-ai.onrender.com)
-        if (hostname.includes("healthbridge-ai") || port === "8000") {
+        // If accessed directly on the backend web service (e.g. https://project2advance-2.onrender.com)
+        if (hostname.includes("project2advance") || hostname.includes("healthbridge-ai") || port === "8000") {
           return window.location.origin;
         }
       }
@@ -54,7 +54,7 @@
         if (window.HEALTHBRIDGE_API_URL && window.HEALTHBRIDGE_API_URL.startsWith("http")) {
           return window.HEALTHBRIDGE_API_URL.replace(/\/$/, "");
         }
-        return "https://healthbridge-ai.onrender.com";
+        return "https://project2advance-2.onrender.com";
       }
     }
     // 6. Default reliable local development fallback
@@ -73,7 +73,7 @@
         const candidates = Array.from(new Set([
           currentApiBase,
           (typeof window !== "undefined" && window.HEALTHBRIDGE_API_URL && window.HEALTHBRIDGE_API_URL.startsWith("http")) ? window.HEALTHBRIDGE_API_URL.replace(/\/$/, "") : null,
-          isLocal ? "http://127.0.0.1:8000" : "https://healthbridge-ai.onrender.com",
+          isLocal ? "http://127.0.0.1:8000" : "https://project2advance-2.onrender.com",
           isLocal ? "http://localhost:8000" : null
         ])).filter(Boolean);
 
@@ -296,7 +296,7 @@
       const candidates = Array.from(new Set([
         currentApiBase,
         (typeof window !== "undefined" && window.HEALTHBRIDGE_API_URL && window.HEALTHBRIDGE_API_URL.startsWith("http")) ? window.HEALTHBRIDGE_API_URL.replace(/\/$/, "") : null,
-        isLocal ? "http://127.0.0.1:8000" : "https://healthbridge-ai.onrender.com",
+        isLocal ? "http://127.0.0.1:8000" : "https://project2advance-2.onrender.com",
         isLocal ? "http://localhost:8000" : null
       ])).filter(Boolean);
 

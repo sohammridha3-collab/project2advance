@@ -154,7 +154,7 @@
             <span style="font-size:2.6rem;display:block;margin-bottom:1rem">🔌</span>
             <h3 style="margin:0 0 .5rem;color:#fca5a5">Cannot Connect to Backend</h3>
             <p style="color:var(--text-muted);margin:0 0 1.2rem;font-size:0.92rem;line-height:1.5">
-              Could not establish connection to the FastAPI server at <code>${esc(err.apiBase || "http://127.0.0.1:8000")}</code>.
+              Could not establish connection to the FastAPI server at <code>${esc(err.apiBase || (window.HR_API && window.HR_API.getBaseUrl ? window.HR_API.getBaseUrl() : "https://project2advance-2.onrender.com"))}</code>.
               The backend may be restarting or offline.
             </p>
             <div style="display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap">

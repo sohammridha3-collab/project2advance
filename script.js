@@ -19,7 +19,7 @@
           return "http://127.0.0.1:8000";
         }
         if (!isLocal) {
-          return window.location.origin;
+          return "https://project2advance-2.onrender.com";
         }
       }
     }

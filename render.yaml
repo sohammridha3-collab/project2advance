@@ -25,7 +25,7 @@ services:
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 1440
       - key: ALLOWED_ORIGINS
-        value: "https://healthbridge-frontend.onrender.com,https://healthbridge-ai.onrender.com"
+        value: "https://healthbridge-frontend.onrender.com,https://project2advance-2.onrender.com,https://project2advance.onrender.com"
       - key: UPLOAD_DIRECTORY
         value: uploads/prescriptions
       - key: GIT_LFS_SKIP_SMUDGE
@@ -78,4 +78,4 @@ services:
         destination: /result.html
     envVars:
       - key: BACKEND_URL
-        value: https://healthbridge-ai.onrender.com
+        value: https://project2advance-2.onrender.com
