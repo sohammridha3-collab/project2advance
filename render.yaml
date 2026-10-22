@@ -1,4 +1,7 @@
 services:
+  # ============================================================
+  # 1. FastAPI Backend & Machine Learning Web Service
+  # ============================================================
   - type: web
     name: healthbridge-ai
     runtime: python
@@ -13,7 +16,7 @@ services:
         value: 3.12.4
       - key: DATABASE_URL
         sync: false
-        # Can connect to a free PostgreSQL database (e.g. from Supabase, Neon, or Render Postgres)
+        # Can connect to a free PostgreSQL database (e.g. from Render Postgres, Supabase, Neon)
         # Default fallback to sqlite:///./health_risk.db if left blank
       - key: SECRET_KEY
         generateValue: true
@@ -22,8 +25,57 @@ services:
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 1440
       - key: ALLOWED_ORIGINS
-        value: "*"
+        value: "https://healthbridge-frontend.onrender.com,https://healthbridge-ai.onrender.com"
       - key: UPLOAD_DIRECTORY
         value: uploads/prescriptions
       - key: GIT_LFS_SKIP_SMUDGE
         value: "0"
+
+  # ============================================================
+  # 2. HealthBridge Frontend Static Site
+  # ============================================================
+  - type: web
+    name: healthbridge-frontend
+    runtime: static
+    plan: free
+    region: oregon
+    buildCommand: node build-config.js
+    staticPublishPath: .
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /login
+        destination: /login.html
+      - type: rewrite
+        source: /timeline
+        destination: /timeline.html
+      - type: rewrite
+        source: /prescription
+        destination: /prescription.html
+      - type: rewrite
+        source: /recommendation
+        destination: /recommendation.html
+      - type: rewrite
+        source: /problems
+        destination: /problems.html
+      - type: rewrite
+        source: /allergies
+        destination: /allergies.html
+      - type: rewrite
+        source: /history
+        destination: /history.html
+      - type: rewrite
+        source: /briefing
+        destination: /briefing.html
+      - type: rewrite
+        source: /admin
+        destination: /admin.html
+      - type: rewrite
+        source: /share
+        destination: /share.html
+      - type: rewrite
+        source: /result
+        destination: /result.html
+    envVars:
+      - key: BACKEND_URL
+        value: https://healthbridge-ai.onrender.com

@@ -89,11 +89,8 @@ default_origins = [
 ]
 
 env_origins = os.getenv("ALLOWED_ORIGINS", "")
-if env_origins:
-    env_list = [orig.strip() for orig in env_origins.split(",") if orig.strip()]
-    allowed_origins = list(set(default_origins + env_list))
-else:
-    allowed_origins = default_origins
+parsed_env_origins = [orig.strip() for orig in env_origins.split(",") if orig.strip() and orig.strip() != "*"]
+allowed_origins = list(set(default_origins + parsed_env_origins))
 
 logger.info(f"[CORS] Allowed origins: {allowed_origins}")
 
@@ -110,11 +107,11 @@ class PrivateNetworkAccessMiddleware(BaseHTTPMiddleware):
                 del response.headers["access-control-allow-credentials"]
         return response
 
-# 1. CORS Middleware
+# 1. CORS Middleware: Strict, production-ready CORS allowing explicit origins and Render deployments
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r".*",
+    allow_origin_regex=r"^https:\/\/.*\.onrender\.com$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],

@@ -6,21 +6,27 @@
   "use strict";
 
   const getApiBase = () => {
-    // 1. Explicit global configuration or build environment
     if (typeof window !== "undefined") {
-      if (window.HEALTHBRIDGE_API_URL && typeof window.HEALTHBRIDGE_API_URL === "string") {
-        return window.HEALTHBRIDGE_API_URL.replace(/\/$/, "");
-      }
-      if (window.__API_BASE__ && typeof window.__API_BASE__ === "string") {
-        return window.__API_BASE__.replace(/\/$/, "");
-      }
-      // 2. Local storage override for custom testing
+      const hostname = window.location ? (window.location.hostname || "") : "";
+      const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "";
+
+      // 1. Local storage override for testing or manual endpoint configuration
       try {
         const storedBase = localStorage.getItem("hr_api_base");
         if (storedBase && storedBase.startsWith("http")) {
           return storedBase.replace(/\/$/, "");
         }
       } catch {}
+
+      // 2. Explicit global configuration from config.js or window object
+      if (window.HEALTHBRIDGE_API_URL && typeof window.HEALTHBRIDGE_API_URL === "string" && window.HEALTHBRIDGE_API_URL.startsWith("http")) {
+        if (!isLocalhost || window.HEALTHBRIDGE_API_URL.includes("localhost") || window.HEALTHBRIDGE_API_URL.includes("127.0.0.1")) {
+          return window.HEALTHBRIDGE_API_URL.replace(/\/$/, "");
+        }
+      }
+      if (window.__API_BASE__ && typeof window.__API_BASE__ === "string" && window.__API_BASE__.startsWith("http")) {
+        return window.__API_BASE__.replace(/\/$/, "");
+      }
 
       // 3. HTML meta tag configuration
       try {
@@ -32,17 +38,26 @@
 
       // 4. Inferred from current browser origin
       if (window.location && window.location.origin && window.location.origin.startsWith("http")) {
-        const hostname = window.location.hostname;
         const port = window.location.port;
-        // If loaded from local static dev server (e.g. port 5500, 3000, 5173) on localhost/127.0.0.1, target FastAPI on port 8000
-        if ((hostname === "localhost" || hostname === "127.0.0.1") && port && port !== "8000") {
+        // If loaded from local static dev server (e.g. port 5500, 3000, 5173), target FastAPI on port 8000
+        if (isLocalhost && port && port !== "8000") {
           return "http://127.0.0.1:8000";
         }
-        // For public cloud deployments, tunnels, or direct backend access, the API is at the same origin
-        return window.location.origin;
+        // If accessed directly on the backend web service (e.g. https://healthbridge-ai.onrender.com)
+        if (hostname.includes("healthbridge-ai") || port === "8000") {
+          return window.location.origin;
+        }
+      }
+
+      // 5. If running in production (e.g., Render static site or public domain)
+      if (!isLocalhost) {
+        if (window.HEALTHBRIDGE_API_URL && window.HEALTHBRIDGE_API_URL.startsWith("http")) {
+          return window.HEALTHBRIDGE_API_URL.replace(/\/$/, "");
+        }
+        return "https://healthbridge-ai.onrender.com";
       }
     }
-    // 5. Default reliable local development fallback
+    // 6. Default reliable local development fallback
     return "http://127.0.0.1:8000";
   };
 
@@ -54,14 +69,17 @@
     if (pollIntervalId) return;
     pollIntervalId = setInterval(async () => {
       try {
+        const isLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
         const candidates = Array.from(new Set([
           currentApiBase,
-          "http://127.0.0.1:8000",
-          "http://localhost:8000"
-        ]));
+          (typeof window !== "undefined" && window.HEALTHBRIDGE_API_URL && window.HEALTHBRIDGE_API_URL.startsWith("http")) ? window.HEALTHBRIDGE_API_URL.replace(/\/$/, "") : null,
+          isLocal ? "http://127.0.0.1:8000" : "https://healthbridge-ai.onrender.com",
+          isLocal ? "http://localhost:8000" : null
+        ])).filter(Boolean);
+
         for (const base of candidates) {
           const ctrl = new AbortController();
-          const tid = setTimeout(() => ctrl.abort(), 2000);
+          const tid = setTimeout(() => ctrl.abort(), 2500);
           const res = await fetch(`${base}/health`, { signal: ctrl.signal }).catch(() => null);
           clearTimeout(tid);
           if (res && res.ok) {
@@ -75,7 +93,7 @@
           }
         }
       } catch {}
-    }, 3000);
+    }, 4000);
   }
 
   const TOKEN_KEY = "hr_auth_token";
@@ -255,23 +273,37 @@
       return currentApiBase;
     },
     set BASE_URL(val) {
-      currentApiBase = val;
+      if (val && typeof val === "string") {
+        currentApiBase = val.replace(/\/$/, "");
+      }
+    },
+    getBaseUrl() {
+      return currentApiBase;
+    },
+    setBaseUrl(val) {
+      if (val && typeof val === "string") {
+        currentApiBase = val.replace(/\/$/, "");
+        try { localStorage.setItem("hr_api_base", currentApiBase); } catch {}
+      }
+      return currentApiBase;
     },
 
     /**
-     * Actively probe the backend server health across loopback interfaces
+     * Actively probe the backend server health across candidate interfaces
      */
     async checkHealth() {
+      const isLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
       const candidates = Array.from(new Set([
         currentApiBase,
-        "http://127.0.0.1:8000",
-        "http://localhost:8000"
-      ]));
+        (typeof window !== "undefined" && window.HEALTHBRIDGE_API_URL && window.HEALTHBRIDGE_API_URL.startsWith("http")) ? window.HEALTHBRIDGE_API_URL.replace(/\/$/, "") : null,
+        isLocal ? "http://127.0.0.1:8000" : "https://healthbridge-ai.onrender.com",
+        isLocal ? "http://localhost:8000" : null
+      ])).filter(Boolean);
 
       for (const base of candidates) {
         try {
           const ctrl = new AbortController();
-          const tid = setTimeout(() => ctrl.abort(), 2000);
+          const tid = setTimeout(() => ctrl.abort(), 2500);
           const res = await fetch(`${base}/health`, { signal: ctrl.signal });
           clearTimeout(tid);
           if (res.ok) {
@@ -608,4 +640,5 @@
 
   // Expose globally
   window.HR_API = api;
+  window.API = api;
 })();

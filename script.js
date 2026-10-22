@@ -2,14 +2,34 @@
 (() => {
   "use strict";
 
+  const getApiUrl = () => {
+    if (typeof window !== "undefined") {
+      if (window.HR_API && typeof window.HR_API.getBaseUrl === "function") {
+        return window.HR_API.getBaseUrl();
+      }
+      if (window.API && typeof window.API.getBaseUrl === "function") {
+        return window.API.getBaseUrl();
+      }
+      if (window.HEALTHBRIDGE_API_URL && typeof window.HEALTHBRIDGE_API_URL === "string" && window.HEALTHBRIDGE_API_URL.startsWith("http")) {
+        return window.HEALTHBRIDGE_API_URL.replace(/\/$/, "");
+      }
+      if (window.location && window.location.origin && window.location.origin.startsWith("http")) {
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        if (isLocal && window.location.port && window.location.port !== "8000") {
+          return "http://127.0.0.1:8000";
+        }
+        if (!isLocal) {
+          return window.location.origin;
+        }
+      }
+    }
+    return "http://127.0.0.1:8000";
+  };
+
   const CONFIG = {
-    API_URL: (typeof window !== "undefined" && window.API && typeof window.API.getBaseUrl === "function")
-      ? window.API.getBaseUrl()
-      : (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http"))
-        ? ((window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port && window.location.port !== "8000"
-            ? "http://127.0.0.1:8000"
-            : window.location.origin)
-        : "http://127.0.0.1:8000",
+    get API_URL() {
+      return getApiUrl();
+    },
     STORAGE_KEY: "hr_analysis_v1",
     // Must match the category values your model was trained on.
     OPTIONS: {

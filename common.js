@@ -366,6 +366,8 @@
         }
       }, 3500);
     } else {
+      const targetBase = (detail && detail.base) || (window.HR_API ? window.HR_API.getBaseUrl() : "Backend");
+      const isRemote = targetBase.startsWith("https");
       statusBanner.style.display = "flex";
       statusBanner.style.opacity = "1";
       statusBanner.style.transform = "translateY(0)";
@@ -375,11 +377,11 @@
       statusBanner.innerHTML = `
         <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap">
           <span style="font-size:1.1rem">⚠️</span>
-          <span><strong>Backend Offline:</strong> Cannot connect to FastAPI on <code>127.0.0.1:8000</code>. Retrying automatically...</span>
+          <span><strong>Backend Connecting / Offline:</strong> Cannot reach <code>${esc(targetBase)}</code>${isRemote ? " (Render free tier takes ~30-50s to wake up on cold start)" : ""}. Retrying...</span>
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem">
           <button type="button" id="retry-backend-btn" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;padding:0.25rem 0.65rem;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600">⚡ Check Now</button>
-          <button type="button" id="help-backend-btn" style="background:#fff;border:none;color:#991b1b;padding:0.25rem 0.65rem;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600">🛠️ How to Start</button>
+          <button type="button" id="help-backend-btn" style="background:#fff;border:none;color:#991b1b;padding:0.25rem 0.65rem;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600">⚙️ Settings & Help</button>
         </div>
       `;
 
@@ -407,38 +409,39 @@
   function openBackendHelpModal() {
     if (offlineGuideModal) offlineGuideModal.remove();
 
+    const currentBase = window.HR_API ? window.HR_API.getBaseUrl() : "http://127.0.0.1:8000";
+
     offlineGuideModal = document.createElement("div");
     offlineGuideModal.className = "modal-overlay";
     offlineGuideModal.innerHTML = `
       <div class="glass modal-card" role="dialog" aria-modal="true" style="max-width:560px;padding:1.8rem;text-align:left">
         <button class="modal-close" id="close-backend-modal" type="button" aria-label="Close dialog">&times;</button>
         <h2 style="margin:0 0 0.5rem 0;font-size:1.35rem;display:flex;align-items:center;gap:0.5rem">
-          <span>🛠️</span> FastAPI Backend Server Offline
+          <span>⚙️</span> Backend Connection & Settings
         </h2>
-        <p style="color:var(--mute);font-size:0.9rem;line-height:1.5;margin-bottom:1.2rem">
-          The web application requires the Python FastAPI backend running on <code>http://127.0.0.1:8000</code> to process predictions, medical records, and database storage.
+        <p style="color:var(--mute);font-size:0.9rem;line-height:1.5;margin-bottom:1rem">
+          The application requires the FastAPI backend to process predictions, medical records, and database operations.
         </p>
 
         <div style="background:rgba(255,255,255,0.04);border:1px solid var(--edge);border-radius:10px;padding:1rem;margin-bottom:1rem">
-          <strong style="color:var(--primary,#4f46e5);display:block;margin-bottom:0.4rem;font-size:0.92rem">
-            Option 1: 1-Click Launch (Recommended)
-          </strong>
-          <p style="font-size:0.86rem;color:var(--text);margin:0 0 0.5rem 0">
-            In your project folder, double-click:
-          </p>
-          <div style="display:flex;gap:0.5rem;align-items:center">
-            <code style="background:rgba(0,0,0,0.4);padding:0.4rem 0.8rem;border-radius:6px;font-weight:600;color:#60a5fa">run_app.bat</code>
-            <span style="font-size:0.82rem;color:var(--mute)">or</span>
-            <code style="background:rgba(0,0,0,0.4);padding:0.4rem 0.8rem;border-radius:6px;font-weight:600;color:#60a5fa">run_backend.bat</code>
+          <label style="color:var(--primary,#4f46e5);display:block;margin-bottom:0.4rem;font-size:0.92rem;font-weight:600">
+            Target Backend API URL
+          </label>
+          <div style="display:flex;gap:0.5rem">
+            <input type="text" id="custom-backend-input" value="${esc(currentBase)}" placeholder="https://healthbridge-ai.onrender.com" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--edge);border-radius:6px;padding:0.4rem 0.8rem;color:#fff;font-family:monospace;font-size:0.88rem" />
+            <button id="save-custom-backend-btn" type="button" class="btn p" style="padding:0.4rem 0.9rem;font-size:0.85rem">Save & Connect</button>
           </div>
+          <p style="font-size:0.78rem;color:var(--mute);margin:0.4rem 0 0 0">
+            Render Free Web Services spin down when inactive and take 30–50 seconds to wake up on the first request.
+          </p>
         </div>
 
-        <div style="background:rgba(255,255,255,0.04);border:1px solid var(--edge);border-radius:10px;padding:1rem;margin-bottom:1.2rem">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid var(--edge);border-radius:10px;padding:1rem;margin-bottom:1rem">
           <strong style="color:var(--primary,#4f46e5);display:block;margin-bottom:0.4rem;font-size:0.92rem">
-            Option 2: Terminal Command
+            Local Development Option:
           </strong>
           <p style="font-size:0.86rem;color:var(--text);margin:0 0 0.5rem 0">
-            Open PowerShell or CMD in the project folder and run:
+            If testing on your local machine, run:
           </p>
           <code style="display:block;background:rgba(0,0,0,0.4);padding:0.5rem 0.8rem;border-radius:6px;font-weight:600;color:#34d399">
             python -m uvicorn main:app --host 127.0.0.1 --port 8000
@@ -467,6 +470,33 @@
       }
     });
 
+    const saveCustomBtn = document.getElementById("save-custom-backend-btn");
+    if (saveCustomBtn) {
+      saveCustomBtn.addEventListener("click", async () => {
+        const input = document.getElementById("custom-backend-input");
+        if (input && input.value.trim()) {
+          const newUrl = input.value.trim().replace(/\/$/, "");
+          if (window.HR_API && window.HR_API.setBaseUrl) {
+            window.HR_API.setBaseUrl(newUrl);
+          }
+          saveCustomBtn.textContent = "Connecting...";
+          const health = await window.HR_API.checkHealth();
+          if (health.online) {
+            showToast("Successfully connected to backend!", "success");
+            setTimeout(() => {
+              if (offlineGuideModal) {
+                offlineGuideModal.remove();
+                offlineGuideModal = null;
+              }
+            }, 800);
+          } else {
+            showToast("Could not reach backend at " + newUrl, "error");
+            saveCustomBtn.textContent = "Save & Connect";
+          }
+        }
+      });
+    }
+
     document.getElementById("test-connection-btn").addEventListener("click", async () => {
       const btn = document.getElementById("test-connection-btn");
       btn.textContent = "Testing...";
@@ -480,7 +510,7 @@
           }
         }, 1000);
       } else {
-        btn.textContent = "Still Offline (Check Terminal)";
+        btn.textContent = "Still Offline (Waking up / Retrying...)";
         setTimeout(() => { btn.textContent = "⚡ Test Connection Now"; }, 2500);
       }
     });
