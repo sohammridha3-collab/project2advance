@@ -115,7 +115,7 @@ class PrivateNetworkAccessMiddleware(BaseHTTPMiddleware):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"^https:\/\/.*\.onrender\.com$",
+    allow_origin_regex=r"^(https://.*\.onrender\.com|http://(localhost|127\.0\.0\.1)(:\d+)?)$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
