@@ -58,7 +58,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except JWTError:
         raise credentials_exception
 
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(User.email.ilike(email.strip().lower())).first()
     if user is None:
         raise credentials_exception
     return user
@@ -71,6 +71,6 @@ def get_optional_current_user(token: Optional[str] = Depends(oauth2_scheme_optio
         email: str = payload.get("sub")
         if not email:
             return None
-        return db.query(User).filter(User.email == email).first()
+        return db.query(User).filter(User.email.ilike(email.strip().lower())).first()
     except Exception:
         return None

@@ -22,7 +22,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
     """Registers a new user and creates an initial health profile."""
-    existing_user = db.query(User).filter(User.email == user_in.email).first()
+    email_clean = user_in.email.strip().lower()
+    existing_user = db.query(User).filter(User.email.ilike(email_clean)).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -31,8 +32,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 
     hashed_pw = get_password_hash(user_in.password)
     user = User(
-        name=user_in.name,
-        email=user_in.email,
+        name=user_in.name.strip(),
+        email=email_clean,
         password_hash=hashed_pw
     )
     db.add(user)
@@ -97,10 +98,11 @@ async def login(
             detail="Email and password are required."
         )
 
-    user = db.query(User).filter(User.email == username).first()
+    username_clean = str(username).strip().lower()
+    user = db.query(User).filter(User.email.ilike(username_clean)).first()
     if not user or not verify_password(password, user.password_hash):
         try:
-            db.add(LoginActivity(email=username, activity_type="LOGIN", status="FAILED"))
+            db.add(LoginActivity(email=username_clean, activity_type="LOGIN", status="FAILED"))
             db.commit()
         except Exception:
             pass

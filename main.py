@@ -77,6 +77,10 @@ app = FastAPI(
 # CORS CONFIGURATION
 # ============================================================
 default_origins = [
+    "https://project2advance-3.onrender.com",
+    "https://project2advance-2.onrender.com",
+    "https://project2advance.onrender.com",
+    "https://healthbridge-frontend.onrender.com",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",

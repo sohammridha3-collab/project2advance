@@ -4,13 +4,30 @@
 (() => {
   "use strict";
 
-  const { auth } = window.HR_API;
+  const getAuth = () => (window.HR_API ? window.HR_API.auth : null);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-  // If already logged in, redirect to Home page immediately
-  if (auth.isAuthenticated()) {
-    window.location.replace("index.html");
-    return;
+  // If already logged in with a valid token, verify with backend before redirecting
+  const checkInitialAuth = async () => {
+    const auth = getAuth();
+    if (!auth || !auth.isAuthenticated()) return;
+    try {
+      const user = await auth.getMe();
+      if (user) {
+        window.location.replace("index.html");
+      } else {
+        auth.logout();
+      }
+    } catch {
+      if (auth) auth.logout();
+    }
+  };
+
+  // Run initial token verification safely
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", checkInitialAuth);
+  } else {
+    checkInitialAuth();
   }
 
   const tabLoginBtn = document.getElementById("tab-login-btn");
@@ -50,6 +67,14 @@
   // Form submit (Sign In or Register)
   authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const auth = getAuth();
+    if (!auth) {
+      statusBox.style.display = "flex";
+      statusBox.className = "form-state-box error";
+      statusBox.innerHTML = `<span>\u26a0</span><span>API client is not ready. Please refresh the page.</span>`;
+      return;
+    }
+
     const email = inputEmail.value.trim();
     const password = inputPassword.value;
     const name = inputName.value.trim();
@@ -61,11 +86,20 @@
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      statusBox.style.display = "flex";
+      statusBox.className = "form-state-box error";
+      statusBox.innerHTML = `<span>\u26a0</span><span>Please enter a valid email address (e.g. name@example.com).</span>`;
+      inputEmail.focus();
+      return;
+    }
+
     if (currentMode === "register") {
-      if (!name) {
+      if (!name || name.length < 2) {
         statusBox.style.display = "flex";
         statusBox.className = "form-state-box error";
-        statusBox.innerHTML = `<span>\u26a0</span><span>Please enter your full name.</span>`;
+        statusBox.innerHTML = `<span>\u26a0</span><span>Please enter your full name (at least 2 characters).</span>`;
         inputName.focus();
         return;
       }
@@ -108,7 +142,8 @@
       }
     } catch (err) {
       statusBox.className = "form-state-box error";
-      statusBox.innerHTML = `<span>\u26a0</span><span>${esc(err.message)}</span>`;
+      const cleanMsg = err && err.message ? err.message : "Authentication failed. Please verify your credentials.";
+      statusBox.innerHTML = `<span>\u26a0</span><span>${esc(cleanMsg)}</span>`;
       authMainBtn.disabled = false;
       authMainBtn.textContent = currentMode === "register" ? "Create Account & Enter Dashboard \u2192" : "Sign In to Dashboard \u2192";
     }
@@ -116,6 +151,9 @@
 
   // 1-Click Demo Login
   quickDemoBtn.addEventListener("click", async () => {
+    const auth = getAuth();
+    if (!auth) return;
+
     quickDemoBtn.disabled = true;
     quickDemoBtn.textContent = "Signing in as Demo Patient...";
     statusBox.style.display = "flex";
@@ -139,7 +177,8 @@
       }, 500);
     } catch (err) {
       statusBox.className = "form-state-box error";
-      statusBox.innerHTML = `<span>\u26a0</span><span>${esc(err.message)}</span>`;
+      const cleanMsg = err && err.message ? err.message : "Demo sign in failed.";
+      statusBox.innerHTML = `<span>\u26a0</span><span>${esc(cleanMsg)}</span>`;
       quickDemoBtn.disabled = false;
       quickDemoBtn.textContent = "\u26a1 1-Click Demo Patient Login";
     }

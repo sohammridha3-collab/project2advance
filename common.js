@@ -4,19 +4,15 @@
 (() => {
   "use strict";
 
-  const { auth } = window.HR_API;
-  const currentPath = window.location.pathname.split("/").pop() || "index.html";
-  const isAuthPage = currentPath === "login.html";
-  const isAdminPage = currentPath === "admin.html";
-  const isPublicPage = ["index.html", "result.html", "recommendation.html", "login.html", "share.html", ""].includes(currentPath);
+  const auth = window.HR_API ? window.HR_API.auth : { isAuthenticated: () => false };
+  const currentPath = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+  const isAuthPage = currentPath === "login.html" || currentPath === "login";
+  const isAdminPage = currentPath === "admin.html" || currentPath === "admin";
+  const isPublicPage = ["index.html", "result.html", "result", "recommendation.html", "recommendation", "login.html", "login", "share.html", "share", ""].includes(currentPath);
 
   // ROUTE GUARD: Ensure login is required only for private medical record pages.
   if (!auth.isAuthenticated() && !isPublicPage && !isAdminPage) {
     window.location.replace("login.html");
-    return;
-  }
-  if (auth.isAuthenticated() && isAuthPage) {
-    window.location.replace("index.html");
     return;
   }
 

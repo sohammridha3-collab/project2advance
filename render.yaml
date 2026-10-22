@@ -25,7 +25,7 @@ services:
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 1440
       - key: ALLOWED_ORIGINS
-        value: "https://healthbridge-frontend.onrender.com,https://project2advance-2.onrender.com,https://project2advance.onrender.com"
+        value: "https://project2advance-3.onrender.com,https://project2advance-2.onrender.com,https://project2advance.onrender.com,https://healthbridge-frontend.onrender.com"
       - key: UPLOAD_DIRECTORY
         value: uploads/prescriptions
       - key: GIT_LFS_SKIP_SMUDGE

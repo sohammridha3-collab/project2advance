@@ -5,16 +5,22 @@
 (() => {
   "use strict";
 
+  const DEFAULT_REMOTE_BACKEND = "https://project2advance-2.onrender.com";
+
   const getApiBase = () => {
     if (typeof window !== "undefined") {
       const hostname = window.location ? (window.location.hostname || "") : "";
-      const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "";
+      const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1" || hostname.startsWith("192.168.") || hostname === "";
 
-      // 1. Local storage override for testing or manual endpoint configuration
+      // 1. Explicit override via localStorage (validate against stale static site or localhost in production)
       try {
         const storedBase = localStorage.getItem("hr_api_base");
         if (storedBase && storedBase.startsWith("http")) {
-          return storedBase.replace(/\/$/, "");
+          if (!isLocalhost && (storedBase.includes("localhost") || storedBase.includes("127.0.0.1") || storedBase.includes("project2advance-3.onrender.com"))) {
+            localStorage.removeItem("hr_api_base");
+          } else {
+            return storedBase.replace(/\/$/, "");
+          }
         }
       } catch {}
 
@@ -43,18 +49,18 @@
         if (isLocalhost && port && port !== "8000") {
           return "http://127.0.0.1:8000";
         }
-        // If accessed directly on the backend web service (e.g. https://project2advance-2.onrender.com)
-        if (hostname.includes("project2advance") || hostname.includes("healthbridge-ai") || port === "8000") {
+        // ONLY if specifically hosted on the backend web service directly or local FastAPI port 8000
+        if (hostname === "project2advance-2.onrender.com" || (isLocalhost && port === "8000")) {
           return window.location.origin;
         }
       }
 
-      // 5. If running in production (e.g., Render static site or public domain)
+      // 5. If running in production (e.g., Render static site https://project2advance-3.onrender.com)
       if (!isLocalhost) {
-        if (window.HEALTHBRIDGE_API_URL && window.HEALTHBRIDGE_API_URL.startsWith("http")) {
+        if (window.HEALTHBRIDGE_API_URL && typeof window.HEALTHBRIDGE_API_URL === "string" && window.HEALTHBRIDGE_API_URL.startsWith("http")) {
           return window.HEALTHBRIDGE_API_URL.replace(/\/$/, "");
         }
-        return "https://project2advance-2.onrender.com";
+        return DEFAULT_REMOTE_BACKEND;
       }
     }
     // 6. Default reliable local development fallback
@@ -141,8 +147,10 @@
       headers["Content-Type"] = "application/json";
     }
 
+    const isLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+    const defaultTimeout = !isLocal ? 45000 : 15000;
     const maxRetries = options.retry !== undefined ? options.retry : 2;
-    const timeoutMs = options.timeoutMs || (isFormData ? 25000 : 12000);
+    const timeoutMs = options.timeoutMs || (isFormData ? 45000 : defaultTimeout);
 
     let lastError = null;
     let response = null;
@@ -242,8 +250,12 @@
       // Handle specific HTTP error categories distinctly
       if (response.status === 401) {
         clearAuthData();
-        window.dispatchEvent(new CustomEvent("hr:auth_changed", { detail: { user: null, expired: true } }));
-        message = "Your session has expired or authentication credentials are invalid. Please sign in again.";
+        if (endpoint !== "/auth/login") {
+          window.dispatchEvent(new CustomEvent("hr:auth_changed", { detail: { user: null, expired: true } }));
+          message = "Your session has expired. Please sign in again.";
+        } else {
+          message = (typeof data === "object" && data && data.detail) ? data.detail : "Incorrect email or password.";
+        }
       } else if (response.status === 403) {
         message = data.detail || "You do not have permission to access or modify this medical record.";
       } else if (response.status === 404) {
@@ -303,7 +315,7 @@
       for (const base of candidates) {
         try {
           const ctrl = new AbortController();
-          const tid = setTimeout(() => ctrl.abort(), 2500);
+          const tid = setTimeout(() => ctrl.abort(), 6000);
           const res = await fetch(`${base}/health`, { signal: ctrl.signal });
           clearTimeout(tid);
           if (res.ok) {
@@ -358,7 +370,7 @@
           body: JSON.stringify({ name, email, password }),
         });
         // Auto-login after registration
-        return await this.login(email, password, true);
+        return await api.auth.login(email, password, true);
       },
 
       async getMe() {
